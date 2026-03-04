@@ -1,0 +1,17 @@
+﻿Equipment columns: id, Machine number, Property name, prefectures, Number of boxes, Number of cases, address, created_at, Model, Type, program, service
+
+Sample row:
+  "id": 1
+  "Machine number": 562725
+  "Property name": "繧ｪ繝上リ蜿､豺ｵ繧ｬ繝ｼ繝・ル繧｢"
+  "prefectures": "逾槫･亥ｷ晉恁"
+  "Number of boxes": 33
+  "Number of cases": 7
+  "address": "逶ｸ讓｡蜴溷ｸょ漉蛹ｺ魴憺㍽譽ｮ1-24-1"
+  "created_at": "2026-04-03"
+  "Model": "FTS5502-H95-H5"
+  "Type": "FRC"
+  "program": "MLSH5.05.38.00"
+  "service": null
+
+profiles columns: id, email, role, notification_preference, updated_at, display_name, avatar_url, is_active, employee_id, joining_date, telephone, group, custom_data, leader, agreement, service_years, retirement_date, training_1, training_2, after_update, training_time_join, training_time_out, google_account, surface, fap, eq_role

@@ -1111,21 +1111,22 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
     if (!form.unit || form.unit.trim().length === 0) return;
 
     const timer = setTimeout(async () => {
-      // 調査結果に基づき:
+      // RLS修正後・API検証済みのカラム名:
       // テーブル名: "Equipment" (大文字)
       // 検索キー: "Machine number"
-      // 取得カラム: "Model", "address" (元々想定していた "Property name", "Area/Prefecture" は存在しない)
+      // 取得カラム: "Property name" (物件名), "prefectures" (県別), "address" (エリア)
       const { data, error } = await supabase
         .from("Equipment")
-        .select('"Model", "address"')
-        .eq("Machine number", form.unit.trim())
+        .select('"Property name", prefectures, address')
+        .eq("Machine number", Number(form.unit.trim()))
         .maybeSingle();
 
       if (!error && data) {
         setForm(p => ({
           ...p,
-          property: data["Model"] || p.property,
-          area: data["address"] || p.area
+          property: data["Property name"] || p.property,
+          prefecture: data.prefectures || p.prefecture,
+          area: data.address || p.area
         }));
       } else if (error) {
         console.error("Equipment lookup error:", error);
@@ -1195,7 +1196,7 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
   );
 }
 
-// --- Admin Modal (Type & Worker master) ---
+// --- Admin Modal (Type & Worker master + sche_role) ---
 function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const [tab, setTab] = useState("types");
 
@@ -1205,12 +1206,19 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const [selectedPreset, setSelectedPreset] = useState(0);
 
   // Worker master state
-  const [workerList, setWorkerList] = useState([...workers]);
-  const [newWorkerName, setNewWorkerName] = useState("");
+  const [workerList, setWorkerList] = useState(workers.map(w => ({ ...w, sche_role: w.sche_role || "worker" })));
+  const [newWorkerEmail, setNewWorkerEmail] = useState("");
+  const [emailSearchResult, setEmailSearchResult] = useState(null);
+  const [emailSearching, setEmailSearching] = useState(false);
   const workerColors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed", "#b45309", "#0d9488"];
 
   const [editingTypeIdx, setEditingTypeIdx] = useState(null);
   const [editingWorkerId, setEditingWorkerId] = useState(null);
+  const [newWorkerName, setNewWorkerName] = useState("");
+
+  const SCHE_ROLES = ["admin", "worker", "viewer"];
+  const SCHE_ROLE_LABELS = { admin: "管理者", worker: "対応者", viewer: "閲覧者" };
+  const SCHE_ROLE_COLORS = { admin: "#dc2626", worker: "#2563eb", viewer: "#64748b" };
 
   const addType = () => {
     if (editingTypeIdx !== null) {
@@ -1229,19 +1237,67 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   };
   const removeType = (idx) => { setTypeList(typeList.filter((_, i) => i !== idx)); };
 
-  const addWorker = () => {
-    if (editingWorkerId !== null) {
-      if (!newWorkerName.trim()) { alert("名前を入力してください"); return; }
+  // メールアドレスで profiles を検索
+  const searchByEmail = async () => {
+    if (!newWorkerEmail.trim()) return;
+    setEmailSearching(true);
+    setEmailSearchResult(null);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, display_name")
+      .eq("email", newWorkerEmail.trim())
+      .maybeSingle();
+    setEmailSearching(false);
+    if (error) {
+      setEmailSearchResult({ found: false, message: "検索エラー: " + error.message });
+    } else if (!data) {
+      setEmailSearchResult({ found: false, message: "このメールアドレスは登録されていません" });
+    } else if (workerList.some(w => w.id === data.id)) {
+      setEmailSearchResult({ found: false, message: `${data.display_name || data.email} は既に対応者として登録されています` });
+    } else {
+      setEmailSearchResult({ found: true, profile: data });
+    }
+  };
+
+  // メール確認後に対応者を追加
+  const addWorkerFromProfile = async () => {
+    if (!emailSearchResult || !emailSearchResult.found) return;
+    const profile = emailSearchResult.profile;
+    // Supabase の sche_role を worker に設定
+    await supabase.from("profiles").update({ sche_role: "worker" }).eq("id", profile.id);
+    const newW = {
+      id: profile.id,
+      name: profile.display_name || profile.email,
+      color: workerColors[workerList.length % workerColors.length],
+      sche_role: "worker",
+      email: profile.email
+    };
+    setWorkerList([...workerList, newW]);
+    setNewWorkerEmail("");
+    setEmailSearchResult(null);
+  };
+
+  // 既存対応者の名前編集
+  const updateWorkerName = () => {
+    if (editingWorkerId !== null && newWorkerName.trim()) {
       setWorkerList(workerList.map(w => w.id === editingWorkerId ? { ...w, name: newWorkerName.trim() } : w));
       setEditingWorkerId(null);
-    } else {
-      if (!newWorkerName.trim()) return;
-      const nid = workerList.length > 0 ? Math.max(...workerList.map(w => w.id)) + 1 : 1;
-      setWorkerList([...workerList, { id: nid, name: newWorkerName.trim(), color: workerColors[(nid - 1) % workerColors.length] }]);
+      setNewWorkerName("");
     }
-    setNewWorkerName("");
   };
-  const removeWorker = (id) => { setWorkerList(workerList.filter(x => x.id !== id)); };
+
+  // sche_role 変更
+  const changeRole = async (workerId, newRole) => {
+    await supabase.from("profiles").update({ sche_role: newRole }).eq("id", workerId);
+    setWorkerList(workerList.map(w => w.id === workerId ? { ...w, sche_role: newRole } : w));
+  };
+
+  // 対応者削除（sche_role を null に）
+  const removeWorker = async (id) => {
+    if (!confirm("この対応者を削除しますか？")) return;
+    await supabase.from("profiles").update({ sche_role: null }).eq("id", id);
+    setWorkerList(workerList.filter(x => x.id !== id));
+  };
 
   const save = () => {
     if (tab === "types") {
@@ -1255,7 +1311,7 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 8, padding: 22, width: 480, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: "#fff", borderRadius: 8, padding: 22, width: 540, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 6 }}><IconGear size={16} color="#1e293b" /> 管理者設定</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94a3b8" }}>✕</button>
@@ -1298,18 +1354,56 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
 
           {tab === "workers" && (
             <>
+              {/* 対応者一覧（sche_role 付き） */}
               {workerList.map(w => (
-                <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
-                  <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{w.id}</span>
-                  <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{w.name}</span>
-                  <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "#64748b" }}><IconEdit size={13} /></button>
-                  <button onClick={() => removeWorker(w.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "2px" }}><IconTrash size={13} color="#ef4444" /></button>
+                <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
+                  {editingWorkerId === w.id ? (
+                    <>
+                      <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)} onKeyDown={e => e.key === "Enter" && updateWorkerName()} style={{ flex: 1, padding: "3px 6px", border: "1px solid #93c5fd", borderRadius: 3, fontSize: 11 }} />
+                      <button onClick={updateWorkerName} style={{ padding: "3px 8px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 10, cursor: "pointer" }}>OK</button>
+                      <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "3px 8px", borderRadius: 3, border: "1px solid #d1d5db", background: "#f8fafc", color: "#64748b", fontSize: 10, cursor: "pointer" }}>×</button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{w.name}</span>
+                      <select value={w.sche_role || "worker"} onChange={e => changeRole(w.id, e.target.value)}
+                        style={{ padding: "2px 4px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 10, color: SCHE_ROLE_COLORS[w.sche_role || "worker"], fontWeight: 700 }}>
+                        {SCHE_ROLES.map(r => <option key={r} value={r}>{SCHE_ROLE_LABELS[r]}</option>)}
+                      </select>
+                      <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "#64748b" }}><IconEdit size={13} /></button>
+                      <button onClick={() => removeWorker(w.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "2px" }}><IconTrash size={13} color="#ef4444" /></button>
+                    </>
+                  )}
                 </div>
               ))}
-              <div style={{ display: "flex", gap: 6, margin: "10px 0" }}>
-                <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)} onKeyDown={e => e.key === "Enter" && addWorker()} placeholder="名前..." style={{ flex: 1, padding: "5px 8px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11 }} />
-                {editingWorkerId !== null && <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "5px 8px", borderRadius: 3, border: "1px solid #d1d5db", background: "#f8fafc", color: "#64748b", fontSize: 11, cursor: "pointer" }}>キャンセル</button>}
-                <button onClick={addWorker} style={{ padding: "5px 12px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{editingWorkerId !== null ? "更新" : "追加"}</button>
+
+              {/* 対応者追加（メール確認） */}
+              <div style={{ margin: "14px 0 6px", padding: "10px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 6 }}>対応者を追加（メールアドレスで検索）</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input value={newWorkerEmail} onChange={e => setNewWorkerEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && searchByEmail()}
+                    placeholder="email@example.com" style={{ flex: 1, padding: "5px 8px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11 }} />
+                  <button onClick={searchByEmail} disabled={emailSearching}
+                    style={{ padding: "5px 12px", borderRadius: 3, border: "none", background: "#475569", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", opacity: emailSearching ? 0.6 : 1 }}>
+                    {emailSearching ? "検索中..." : "検索"}
+                  </button>
+                </div>
+                {emailSearchResult && (
+                  <div style={{ marginTop: 8 }}>
+                    {emailSearchResult.found ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", background: "#dcfce7", borderRadius: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", flex: 1 }}>
+                          {emailSearchResult.profile.display_name || emailSearchResult.profile.email} を追加しますか？
+                        </span>
+                        <button onClick={addWorkerFromProfile}
+                          style={{ padding: "4px 12px", borderRadius: 3, border: "none", background: "#16a34a", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>追加</button>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 11, color: "#dc2626", padding: "4px 0" }}>{emailSearchResult.message}</div>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1368,24 +1462,25 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(true);
 
   useEffect(() => {
-    // Fetch workers from Supabase
+    // Fetch workers from Supabase (sche_role ベース)
     const fetchWorkers = async () => {
-      // 調査結果に基づき:
-      // テーブル名: "profiles" (小文字)
-      // カラム名: "id", "display_name", "eq_role" (full_name は存在しない)
+      // sche_role が設定されたメンバーを取得（worker, admin）
+      // sche_role が null ではない = スケジュール管理の対応者
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, eq_role")
-        .not("eq_role", "is", null);
+        .select("id, email, display_name, sche_role")
+        .not("sche_role", "is", null);
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
         const fetched = data.map((d, i) => ({
           id: d.id,
-          name: d.display_name || "Unknown",
-          color: colors[i % colors.length]
+          name: d.display_name || d.email || "Unknown",
+          color: colors[i % colors.length],
+          sche_role: d.sche_role,
+          email: d.email
         }));
-        if (fetched.length > 0) setWorkers(fetched);
+        setWorkers(fetched);
       } else if (error) {
         console.error("Fetch workers error:", error);
       }

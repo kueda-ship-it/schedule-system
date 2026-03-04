@@ -5,18 +5,39 @@ const env = fs.readFileSync('.env', 'utf8');
 const url = env.match(/VITE_SUPABASE_URL=(.*)/)[1].trim();
 const key = env.match(/VITE_SUPABASE_ANON_KEY=(.*)/)[1].trim();
 
-const apiUrl = new URL('/rest/v1/', url);
-
 https.get({
-    hostname: apiUrl.hostname,
-    path: apiUrl.pathname,
+    hostname: new URL(url).hostname,
+    path: '/rest/v1/Equipment?select=*&limit=1',
     headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
 }, (res) => {
     let data = '';
     res.on('data', (chunk) => data += chunk);
     res.on('end', () => {
-        const json = JSON.parse(data);
-        console.log("profiles:", Object.keys(json.definitions.profiles.properties).join(", "));
-        console.log("Equipment:", Object.keys(json.definitions.Equipment.properties).join(", "));
+        const rows = JSON.parse(data);
+        if (rows.length > 0) {
+            console.log("Equipment columns:", Object.keys(rows[0]).join(", "));
+            console.log("\nSample row:");
+            for (const [k, v] of Object.entries(rows[0])) {
+                console.log(`  "${k}": ${JSON.stringify(v)}`);
+            }
+        } else {
+            console.log("No data returned");
+        }
+
+        // Also check profiles
+        https.get({
+            hostname: new URL(url).hostname,
+            path: '/rest/v1/profiles?select=*&limit=1',
+            headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+        }, (res2) => {
+            let data2 = '';
+            res2.on('data', (chunk) => data2 += chunk);
+            res2.on('end', () => {
+                const rows2 = JSON.parse(data2);
+                if (rows2.length > 0) {
+                    console.log("\nprofiles columns:", Object.keys(rows2[0]).join(", "));
+                }
+            });
+        });
     });
 }).on('error', console.error);
