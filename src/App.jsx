@@ -1503,7 +1503,37 @@ function Legend({ workers }) {
     </div>
   );
 }
+// --- Login Screen ---
+function LoginScreen() {
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: { scopes: 'email profile' }
+    });
+    if (error) {
+      alert("ログインエラー: " + error.message);
+      setLoading(false);
+    }
+  };
 
+  return (
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
+      <div style={{ background: "#fff", padding: "40px 32px", borderRadius: 12, boxShadow: "0 10px 25px rgba(0,0,0,0.05)", textAlign: "center", maxWidth: 400, width: "100%" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#1e293b", margin: "0 0 12px" }}>Schedule System</h1>
+        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 32px" }}>Microsoft アカウントでサインインしてください</p>
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          style={{ width: "100%", padding: "12px", background: "#1e40af", color: "#fff", border: "none", borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
+        >
+          {loading ? "接続中..." : "Microsoft アカウントでログイン"}
+        </button>
+      </div>
+    </div>
+  );
+}
 // --- Main App ---
 export default function App() {
   const now = new Date();
@@ -1525,9 +1555,20 @@ export default function App() {
   const [workerActionMenu, setWorkerActionMenu] = useState(null);
   const [moveAllMenu, setMoveAllMenu] = useState(null);
   const [zoom, setZoom] = useState(1);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [session, setSession] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
+    // Auth observer
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsInitializing(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
     // Fetch workers from Supabase (sche_role ベース)
     const fetchWorkers = async () => {
       // sche_role が設定されたメンバーを取得（worker, admin）
@@ -1556,8 +1597,21 @@ export default function App() {
     window.onWorkerMenu = (x, y, workerId, workerName, dateStr) => {
       setWorkerActionMenu({ x, y, workerId, workerName, dateStr });
     };
-    return () => { delete window.onWorkerMenu; };
+    return () => {
+      delete window.onWorkerMenu;
+      subscription.unsubscribe();
+    };
   }, []);
+
+  // Update isAdmin based on session and worker list
+  useEffect(() => {
+    if (session && workers.length > 0) {
+      const myProfile = workers.find(w => w.email === session?.user?.email);
+      setIsAdmin(myProfile?.sche_role === 'admin');
+    } else {
+      setIsAdmin(false);
+    }
+  }, [session, workers]);
 
   const handleMoveAll = useCallback((dateStr, fromWorkerId, toWorkerId) => {
     setTickets(prev => prev.map(t => (t.date === dateStr && t.person === fromWorkerId) ? { ...t, person: toWorkerId } : t));
@@ -1607,6 +1661,13 @@ export default function App() {
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); };
   const prevDay = () => { if (!selectedDate) return; const dd = new Date(selectedDate + "T00:00:00"); dd.setDate(dd.getDate() - 1); setSelectedDate(fmtDate(dd.getFullYear(), dd.getMonth(), dd.getDate())); };
   const nextDay = () => { if (!selectedDate) return; const dd = new Date(selectedDate + "T00:00:00"); dd.setDate(dd.getDate() + 1); setSelectedDate(fmtDate(dd.getFullYear(), dd.getMonth(), dd.getDate())); };
+
+  if (isInitializing) {
+    return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", color: "#64748b", fontSize: 14, fontWeight: 600 }}>Loading...</div>;
+  }
+  if (!session) {
+    return <LoginScreen />;
+  }
 
   return (
     <div style={{ fontFamily: "'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif", background: "#e8ecf1", minHeight: "100vh", color: "#1e293b", paddingBottom: 48 }}>
@@ -1690,6 +1751,8 @@ export default function App() {
           <button onClick={() => setView("monthly")} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "monthly" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "monthly" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Monthly</button>
           <button onClick={() => { if (!selectedDate) setSelectedDate(fmtDate(now.getFullYear(), now.getMonth(), now.getDate())); setView("daily"); }} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "daily" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "daily" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Daily</button>
           <button onClick={() => setView("pool")} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "pool" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "pool" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconPool size={13} color={view === "pool" ? "#93c5fd" : "rgba(255,255,255,0.5)"} /> Pool</button>
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
+          <button onClick={() => supabase.auth.signOut()} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: "rgba(220,38,38,0.2)", color: "#fca5a5", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center" }}>ログアウト</button>
         </div>
       </div>
 
