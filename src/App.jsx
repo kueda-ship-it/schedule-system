@@ -1111,12 +1111,19 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
     if (!form.unit || form.unit.trim().length === 0) return;
 
     const timer = setTimeout(async () => {
-      const { data, error } = await supabase.from("equipment").select("property_name, area, prefecture").eq("unit_no", form.unit.trim()).single();
+      // スクリーンショットに合わせて "Equipment" (大文字) を使用
+      // カラム名も "Machine number", "Property name" を使用
+      const { data, error } = await supabase
+        .from("Equipment")
+        .select('"Property name", "Area/Prefecture"')
+        .eq("Machine number", form.unit.trim())
+        .maybeSingle();
+
       if (!error && data) {
         setForm(p => ({
           ...p,
-          property: data.property_name || p.property,
-          area: data.area || p.area,
+          property: data["Property name"] || p.property,
+          area: data["Area/Prefecture"] || p.area,
           prefecture: data.prefecture || p.prefecture
         }));
       }
@@ -1360,11 +1367,23 @@ export default function App() {
   useEffect(() => {
     // Fetch workers from Supabase
     const fetchWorkers = async () => {
-      const { data, error } = await supabase.from("profiles").select("id, full_name, eq_role").not("eq_role", "is", null);
+      // スクリーンショットでは Profiles (大文字) でリクエストされているため合わせる
+      // カラム名も role, display_name, full_name など。role が not.is.null なので filter も修正
+      const { data, error } = await supabase
+        .from("Profiles")
+        .select("id, display_name, full_name, role")
+        .not("role", "is", null);
+
       if (!error && data) {
         const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
-        const fetched = data.map((d, i) => ({ id: d.id, name: d.full_name, color: colors[i % colors.length] }));
+        const fetched = data.map((d, i) => ({
+          id: d.id,
+          name: d.display_name || d.full_name || "Unknown",
+          color: colors[i % colors.length]
+        }));
         if (fetched.length > 0) setWorkers(fetched);
+      } else if (error) {
+        console.error("Fetch workers error:", error);
       }
     };
     fetchWorkers();
