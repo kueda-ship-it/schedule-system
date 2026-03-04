@@ -13,14 +13,14 @@ UPDATE public.profiles SET sche_role = 'worker' WHERE eq_role = 'technician' AND
 UPDATE public.profiles SET sche_role = 'admin' WHERE email = 'k_ueda@fts.co.jp';
 
 -- 4. RLS ポリシー: profiles の sche_role を anon でも読み取れるようにする
-CREATE POLICY IF NOT EXISTS "allow_anon_read_profiles_sche"
+CREATE POLICY "allow_anon_read_profiles_sche"
   ON public.profiles
   FOR SELECT
   TO anon, authenticated
   USING (true);
 
 -- 5. sche_role の更新は authenticated ユーザー（admin）のみ許可
-CREATE POLICY IF NOT EXISTS "admin_update_sche_role"
+CREATE POLICY "admin_update_sche_role"
   ON public.profiles
   FOR UPDATE
   TO authenticated

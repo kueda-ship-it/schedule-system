@@ -1216,6 +1216,14 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const [editingWorkerId, setEditingWorkerId] = useState(null);
   const [newWorkerName, setNewWorkerName] = useState("");
 
+  // Equipment master state
+  const [eqMachine, setEqMachine] = useState("");
+  const [eqProp, setEqProp] = useState("");
+  const [eqPref, setEqPref] = useState("");
+  const [eqAddr, setEqAddr] = useState("");
+  const [eqAdding, setEqAdding] = useState(false);
+  const [eqMsg, setEqMsg] = useState(null);
+
   const SCHE_ROLES = ["admin", "worker", "viewer"];
   const SCHE_ROLE_LABELS = { admin: "管理者", worker: "対応者", viewer: "閲覧者" };
   const SCHE_ROLE_COLORS = { admin: "#dc2626", worker: "#2563eb", viewer: "#64748b" };
@@ -1299,6 +1307,28 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
     setWorkerList(workerList.filter(x => x.id !== id));
   };
 
+  // 号機追加
+  const addEquipment = async () => {
+    if (!eqMachine.trim() || !eqProp.trim() || !eqPref.trim() || !eqAddr.trim()) {
+      setEqMsg({ error: true, text: "すべての項目を入力してください" });
+      return;
+    }
+    setEqAdding(true);
+    const { error } = await supabase.from('Equipment').insert([{
+      "Machine number": Number(eqMachine),
+      "Property name": eqProp.trim(),
+      "prefectures": eqPref.trim(),
+      "address": eqAddr.trim()
+    }]);
+    setEqAdding(false);
+    if (error) {
+      setEqMsg({ error: true, text: `追加失敗: ${error.message}` });
+    } else {
+      setEqMsg({ error: false, text: `号機 ${eqMachine} を追加しました！` });
+      setEqMachine(""); setEqProp(""); setEqPref(""); setEqAddr("");
+    }
+  };
+
   const save = () => {
     if (tab === "types") {
       const names = typeList.map(t => t.name);
@@ -1320,6 +1350,7 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
         <div style={{ display: "flex", gap: 10, marginBottom: 16, borderBottom: "1px solid #e2e8f0" }}>
           <button onClick={() => setTab("types")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "types" ? 700 : 500, color: tab === "types" ? "#1e40af" : "#64748b", borderBottom: tab === "types" ? "2px solid #1e40af" : "2px solid transparent" }}>タイプマスタ</button>
           <button onClick={() => setTab("workers")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "workers" ? 700 : 500, color: tab === "workers" ? "#1e40af" : "#64748b", borderBottom: tab === "workers" ? "2px solid #1e40af" : "2px solid transparent" }}>対応者管理</button>
+          <button onClick={() => setTab("equipment")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "equipment" ? 700 : 500, color: tab === "equipment" ? "#1e40af" : "#64748b", borderBottom: tab === "equipment" ? "2px solid #1e40af" : "2px solid transparent" }}>号機管理</button>
         </div>
 
         <div style={{ overflowY: "auto", flex: 1, paddingRight: 4 }}>
@@ -1406,6 +1437,41 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
                 )}
               </div>
             </>
+          )}
+
+          {tab === "equipment" && (
+            <div style={{ padding: "10px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", marginBottom: 12 }}>新規号機の追加</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>号機 (Machine number)</label>
+                  <input type="number" value={eqMachine} onChange={e => setEqMachine(e.target.value)}
+                    placeholder="例: 1234" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>物件名 (Property name)</label>
+                  <input type="text" value={eqProp} onChange={e => setEqProp(e.target.value)}
+                    placeholder="例: フルタイムレジデンス" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>県別 (prefectures)</label>
+                  <input type="text" value={eqPref} onChange={e => setEqPref(e.target.value)}
+                    placeholder="例: 東京都" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>エリア (address)</label>
+                  <input type="text" value={eqAddr} onChange={e => setEqAddr(e.target.value)}
+                    placeholder="例: 千代田区" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 11, color: eqMsg?.error ? "#dc2626" : "#16a34a", fontWeight: 600 }}>{eqMsg?.text}</div>
+                <button onClick={addEquipment} disabled={eqAdding}
+                  style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", opacity: eqAdding ? 0.6 : 1 }}>
+                  {eqAdding ? "追加中..." : "追加"}
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
