@@ -1512,7 +1512,8 @@ function LoginScreen() {
       provider: 'azure',
       options: {
         scopes: 'email profile',
-        redirectTo: window.location.origin + window.location.pathname
+        // 末尾のスラッシュなどを省き、Supabaseの許可URLと厳密に一致させるための処理
+        redirectTo: window.location.origin.replace(/\/$/, '')
       }
     });
     if (error) {
