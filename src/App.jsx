@@ -181,6 +181,24 @@ function parseHours(t) {
   }
   return parseFloat(t) || 0;
 }
+function formatArea(address, prefectures) {
+  if (!address) return "";
+  let formatted = address.trim();
+  // 「区」がある場合、その前の「市」を削る
+  if (formatted.includes("区") && formatted.includes("市")) {
+    const wardIdx = formatted.indexOf("区");
+    const cityIdx = formatted.lastIndexOf("市", wardIdx);
+    if (cityIdx !== -1) {
+      formatted = formatted.substring(cityIdx + 1);
+    }
+  }
+  // 略称付与
+  let suffixes = "";
+  if (prefectures && prefectures.includes("神奈川県")) suffixes += "K";
+  if (address.includes("横浜市")) suffixes += "Y";
+
+  return formatted + suffixes;
+}
 
 function getMonthCalendar(year, month) {
   const days = getDaysInMonth(year, month);
@@ -289,12 +307,20 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
     workers.forEach(w => {
       const wId = String(w.id);
       const wTickets = byWorker[wId] || [];
+      const isAdminUser = w.sche_role === "admin";
+
       if (vacSet.has(w.id)) {
-        onVacation.push({ worker: w, tickets: wTickets });
+        // 管理者でも休暇設定されている場合は表示（または予定があれば表示）
+        if (!isAdminUser || wTickets.length > 0) {
+          onVacation.push({ worker: w, tickets: wTickets });
+        }
       } else if (wTickets.length > 0) {
         withTickets.push({ worker: w, tickets: wTickets });
       } else if (!companionIds.has(wId)) {
-        noTickets.push({ worker: w, tickets: [] });
+        // 管理者は予定がない（かつ同行者でもない）場合は「noTickets」に含めない
+        if (!isAdminUser) {
+          noTickets.push({ worker: w, tickets: [] });
+        }
       }
     });
 
@@ -384,6 +410,23 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                     )}
                   </div>
                 </div>
+
+                {/* Unassigned tickets rows */}
+                {unassignedTickets.length > 0 && (
+                  <div style={{ marginBottom: 4, borderRadius: 3, border: "1px dashed #f87171", background: "#fef2f2", overflow: "hidden" }}>
+                    <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "#fee2e2", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
+                    {unassignedTickets.map(t => {
+                      const tc = typeColors[t.type] || typeColors["その他"];
+                      return (
+                        <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
+                          style={{ padding: "2px 3px", borderTop: "1px solid #fee2e2", background: tc.bg, cursor: "pointer", fontSize: 8 }}>
+                          <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
+                          <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.property}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Workers with tickets (grouped) */}
                 <div style={{ flex: 1 }}>
@@ -567,9 +610,12 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
     grouped[k].push(t);
   });
 
-  const vacWorkers = workers.filter(w => vacSet.has(w.id));
   const activeWorkers = workers.filter(w => !vacSet.has(w.id));
-  const sortedWorkers = [...activeWorkers, ...vacWorkers];
+  const unassignedList = grouped["none"] || [];
+  const displayWorkers = [...activeWorkers, ...vacWorkers];
+
+  // 「未割当」を仮想的な作業員として扱うための定義
+  const UNASSIGNED_WORKER = { id: "none", name: "未定", color: "#64748b", isUnassigned: true };
   // Drag & drop reorder
   const [dragId, setDragId] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -625,43 +671,54 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
         </div>
       )}
 
-      {sortedWorkers.map(w => {
-        const wt = grouped[String(w.id)];
+      {[UNASSIGNED_WORKER, ...displayWorkers].map(w => {
+        const wt = grouped[String(w.id)] || [];
         const isVac = vacSet.has(w.id);
+        const isAdminUser = w.sche_role === "admin";
+        const isUnassignedRow = w.isUnassigned;
+
+        // 管理者は予定がない場合は行自体を表示しない
+        if (isAdminUser && wt.length === 0 && !isVac) return null;
+        // 未割当行は予定がない場合は表示しない
+        if (isUnassignedRow && wt.length === 0) return null;
+
         return (
           <div key={w.id} style={{
-            marginBottom: 4, border: "1px solid #e2e8f0", borderRadius: 4,
+            marginBottom: 4, border: isUnassignedRow ? "1px dashed #f87171" : "1px solid #e2e8f0",
+            borderRadius: 4,
             display: "flex", overflow: "hidden",
             opacity: 1,
           }}>
-            <div style={{ width: 5, background: isVac ? "#94a3b8" : w.color, flexShrink: 0 }} />
-            <div style={{ flex: 1, background: "#fff", overflow: "hidden" }}>
+            <div style={{ width: 5, background: isUnassignedRow ? "#f87171" : (isVac ? "#94a3b8" : w.color), flexShrink: 0 }} />
+            <div style={{ flex: 1, background: isUnassignedRow ? "#fef2f2" : "#fff", overflow: "hidden" }}>
               <div style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "5px 10px",
-                background: isVac ? "#fefce8" : wt.length > 0 ? `${w.color}08` : "#fafbfc",
+                background: isUnassignedRow ? "#fee2e2" : (isVac ? "#fefce8" : wt.length > 0 ? `${w.color}08` : "#fafbfc"),
                 borderBottom: wt.length > 0 ? "1px solid #e5e7eb" : "none",
               }}>
-                <span style={{ width: 24, height: 24, borderRadius: "50%", background: isVac ? "#cbd5e1" : w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
-                <span style={{ fontWeight: 700, fontSize: 12, color: isVac ? "#94a3b8" : w.color }}>{w.name}</span>
+                <span style={{ width: 24, height: 24, borderRadius: "50%", background: isUnassignedRow ? "#f87171" : (isVac ? "#cbd5e1" : w.color), color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800 }}>{isUnassignedRow ? "？" : (typeof w.id === "string" ? w.name?.charAt(0) : w.id)}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: isUnassignedRow ? "#ef4444" : (isVac ? "#94a3b8" : w.color) }}>{isUnassignedRow ? "未定 (Unassigned)" : w.name}</span>
                 {isVac && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 3, background: "#fef3c7", color: "#92400e", fontWeight: 700 }}>🌴 休暇</span>}
                 {!isVac && <span style={{ fontSize: 10, color: "#94a3b8" }}>{wt.length}件</span>}
                 <div style={{ flex: 1 }} />
-                <button onClick={() => {
-                  if (!isVac && wt.length > 0) {
-                    if (!confirm(`${w.name}さんには${wt.length}件の予定があります。休暇にしますか？`)) return;
-                  }
-                  onToggleVacation && onToggleVacation(dateStr, w.id);
-                }} style={{
-                  padding: "4px 12px", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 700,
-                  border: isVac ? "2px solid #eab308" : "1px solid #e2e8f0",
-                  background: isVac ? "#fef08a" : "#fff",
-                  color: isVac ? "#854d0e" : "#475569",
-                  transition: "all 0.15s ease",
-                }}
-                  onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "#f1f5f9"; e.currentTarget.style.transform = "scale(1.05)"; }}
-                  onMouseOut={e => { e.currentTarget.style.background = isVac ? "#fef08a" : "#fff"; e.currentTarget.style.transform = "scale(1)"; }}
-                >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="#64748b" /> 休暇</>}</button>
-                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = String(w.id); onEdit(t); }} style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 3, cursor: "pointer", color: "#64748b", fontSize: 9, padding: "2px 8px", fontWeight: 600 }}>＋</button>
+                {!isUnassignedRow && (
+                  <button onClick={() => {
+                    if (!isVac && wt.length > 0) {
+                      if (!confirm(`${w.name}さんには${wt.length}件の予定があります。休暇にしますか？`)) return;
+                    }
+                    onToggleVacation && onToggleVacation(dateStr, w.id);
+                  }} style={{
+                    padding: "4px 12px", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 700,
+                    border: isVac ? "2px solid #eab308" : "1px solid #e2e8f0",
+                    background: isVac ? "#fef08a" : "#fff",
+                    color: isVac ? "#854d0e" : "#475569",
+                    transition: "all 0.15s ease",
+                  }}
+                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "#f1f5f9"; e.currentTarget.style.transform = "scale(1.05)"; }}
+                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "#fef08a" : "#fff"; e.currentTarget.style.transform = "scale(1)"; }}
+                  >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="#64748b" /> 休暇</>}</button>
+                )}
+                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 3, cursor: "pointer", color: "#64748b", fontSize: 9, padding: "2px 8px", fontWeight: 600 }}>＋</button>
               </div>
               {wt.length > 0 && (
                 <div style={{ overflowX: "auto", overflowY: "visible" }}>
@@ -859,22 +916,6 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
           </div>
         );
       })}
-      {grouped["none"].length > 0 && (
-        <div style={{ marginBottom: 4, border: "1px dashed #cbd5e1", borderRadius: 4, background: "#fff", padding: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>未割当 ({grouped["none"].length}件)</span>
-          {grouped["none"].map(t => (
-            <div key={t.id} style={{ fontSize: 11, color: "#1e293b", padding: "3px 0", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontWeight: 600 }}>{t.type} / {t.property}</span>
-              <button onClick={() => onEdit(t)} title="編集" style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex" }}>
-                <IconEdit size={12} />
-              </button>
-              <button onClick={() => onDelete(t.id)} title="削除" style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex" }}>
-                <IconTrash size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -1108,7 +1149,9 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
 
   // Supabase equipment lookup
   useEffect(() => {
-    if (!form.unit || form.unit.trim().length === 0) return;
+    // 号機（unit）が数値のみ、かつ1〜9桁の場合のみ検索を実行
+    const unitVal = form.unit?.trim() || "";
+    if (!/^\d{1,9}$/.test(unitVal)) return;
 
     const timer = setTimeout(async () => {
       // RLS修正後・API検証済みのカラム名:
@@ -1118,15 +1161,17 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
       const { data, error } = await supabase
         .from("Equipment")
         .select('"Property name", prefectures, address')
-        .eq("Machine number", Number(form.unit.trim()))
+        .eq("Machine number", parseInt(unitVal, 10))
         .maybeSingle();
 
       if (!error && data) {
+        const rawAddr = data.address || "";
+        const rawPref = data.prefectures || "";
         setForm(p => ({
           ...p,
           property: data["Property name"] || p.property,
-          prefecture: data.prefectures || p.prefecture,
-          area: data.address || p.area
+          prefecture: rawPref || p.prefecture,
+          area: formatArea(rawAddr, rawPref) || p.area
         }));
       } else if (error) {
         console.error("Equipment lookup error:", error);
@@ -1152,8 +1197,8 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
               <label style={{ fontSize: 10, fontWeight: 600, color: c.key === "faultLevel" && form.faultLevel ? FAULT_LEVEL_COLORS[form.faultLevel] : "#64748b" }}>
                 {c.label}{c.key === "faultLevel" && form.faultLevel ? ` (${form.faultLevel})` : ""}
               </label>
-              {c.key === "person" ? (
-                <select value={form.person} onChange={e => set("person", e.target.value)} style={iStyle}>
+              {c.key === "person" || c.key === "companion" ? (
+                <select value={form[c.key]} onChange={e => set(c.key, e.target.value)} style={iStyle}>
                   <option value="">—</option>
                   {workers.map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
                 </select>
@@ -1182,14 +1227,28 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
                       set(c.key, val);
                     }
                   }}
-                  style={iStyle} />
+                  style={iStyle}
+                  maxLength={c.key === "unit" ? 9 : (c.key === "requestNo" ? 11 : undefined)}
+                  placeholder={c.key === "unit" ? "数字1〜9桁" : (c.key === "requestNo" ? "数字11桁" : "")}
+                />
               )}
             </div>
           ))}
         </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18, paddingTop: 12, borderTop: "1px solid #e5e7eb" }}>
           <button onClick={onClose} style={{ padding: "6px 16px", borderRadius: 4, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>キャンセル</button>
-          <button onClick={() => onSave(form)} style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>保存</button>
+          <button onClick={() => {
+            // 保存前の最終バリデーション
+            if (form.unit && !/^\d{1,9}$/.test(form.unit.trim())) {
+              alert("号機は半角数字1桁〜9桁で入力してください。");
+              return;
+            }
+            if (form.requestNo && !/^\d{11}$/.test(form.requestNo.trim())) {
+              alert("依頼番号は半角数字11桁固定で入力してください。");
+              return;
+            }
+            onSave(form);
+          }} style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>保存</button>
         </div>
       </div>
     </div>
