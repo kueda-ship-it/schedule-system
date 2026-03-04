@@ -1111,21 +1111,24 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
     if (!form.unit || form.unit.trim().length === 0) return;
 
     const timer = setTimeout(async () => {
-      // スクリーンショットに合わせて "Equipment" (大文字) を使用
-      // カラム名も "Machine number", "Property name" を使用
+      // 調査結果に基づき:
+      // テーブル名: "Equipment" (大文字)
+      // 検索キー: "Machine number"
+      // 取得カラム: "Model", "address" (元々想定していた "Property name", "Area/Prefecture" は存在しない)
       const { data, error } = await supabase
         .from("Equipment")
-        .select('"Property name", "Area/Prefecture"')
+        .select('"Model", "address"')
         .eq("Machine number", form.unit.trim())
         .maybeSingle();
 
       if (!error && data) {
         setForm(p => ({
           ...p,
-          property: data["Property name"] || p.property,
-          area: data["Area/Prefecture"] || p.area,
-          prefecture: data.prefecture || p.prefecture
+          property: data["Model"] || p.property,
+          area: data["address"] || p.area
         }));
+      } else if (error) {
+        console.error("Equipment lookup error:", error);
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -1367,12 +1370,13 @@ export default function App() {
   useEffect(() => {
     // Fetch workers from Supabase
     const fetchWorkers = async () => {
-      // スクリーンショットでは Profiles (大文字) でリクエストされているため合わせる
-      // カラム名も role, display_name, full_name など。role が not.is.null なので filter も修正
+      // 調査結果に基づき:
+      // テーブル名: "profiles" (小文字)
+      // カラム名: "id", "display_name", "full_name", "eq_role" (role は存在しない)
       const { data, error } = await supabase
-        .from("Profiles")
-        .select("id, display_name, full_name, role")
-        .not("role", "is", null);
+        .from("profiles")
+        .select("id, display_name, full_name, eq_role")
+        .not("eq_role", "is", null);
 
       if (!error && data) {
         const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
