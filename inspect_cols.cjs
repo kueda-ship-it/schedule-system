@@ -15,13 +15,12 @@ https.get({
     res.on('end', () => {
         const rows = JSON.parse(data);
         if (rows.length > 0) {
-            console.log("Equipment columns:", Object.keys(rows[0]).join(", "));
-            console.log("\nSample row:");
-            for (const [k, v] of Object.entries(rows[0])) {
-                console.log(`  "${k}": ${JSON.stringify(v)}`);
-            }
+            console.log("--- Equipment Columns ---");
+            console.log(Object.keys(rows[0]));
+            console.log("\n--- Sample Raw Data ---");
+            console.log(JSON.stringify(rows[0], null, 2));
         } else {
-            console.log("No data returned");
+            console.log("No Equipment data found.");
         }
 
         // Also check profiles

@@ -132,7 +132,7 @@ const ALL_COLS = [
   { key: "work", label: "作業内容", w: 130, type: "text" },
   { key: "time", label: "時間指定", w: 52, type: "text" },
   { key: "person", label: "対応者", w: 52, type: "worker", dailyOnly: true },
-  { key: "area", label: "エリア", w: 48, type: "select", options: AREAS },
+  { key: "area", label: "エリア", w: 48, type: "text" },
   { key: "prefecture", label: "県別", w: 48, type: "select", options: PREFECTURES },
   { key: "travel", label: "移動", w: 40, type: "text" },
   { key: "companion", label: "同行者", w: 52, type: "text" },
@@ -1160,18 +1160,18 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
       // 取得カラム: "Property name" (物件名), "prefectures" (県別), "address" (エリア)
       const { data, error } = await supabase
         .from("Equipment")
-        .select('"Property name", prefectures, address')
+        .select('*') // 全カラム取得して確実にマッチさせる
         .eq("Machine number", parseInt(unitVal, 10))
         .maybeSingle();
 
       if (!error && data) {
         const rawAddr = data.address || "";
-        const rawPref = data.prefectures || "";
+        const rawPref = (data.prefectures || "").replace(/[都道府県]$/, ""); // プルダウン値に合わせる
         setForm(p => ({
           ...p,
           property: data["Property name"] || p.property,
           prefecture: rawPref || p.prefecture,
-          area: formatArea(rawAddr, rawPref) || p.area
+          area: formatArea(rawAddr, data.prefectures) || p.area
         }));
       } else if (error) {
         console.error("Equipment lookup error:", error);
