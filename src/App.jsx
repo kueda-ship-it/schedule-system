@@ -183,19 +183,33 @@ function parseHours(t) {
 }
 function formatArea(address, prefectures) {
   if (!address) return "";
-  let formatted = address.trim();
-  // 「区」がある場合、その前の「市」を削る
-  if (formatted.includes("区") && formatted.includes("市")) {
-    const wardIdx = formatted.indexOf("区");
-    const cityIdx = formatted.lastIndexOf("市", wardIdx);
-    if (cityIdx !== -1) {
-      formatted = formatted.substring(cityIdx + 1);
-    }
+  const raw = address.trim();
+  const isTokyo = prefectures && prefectures.includes("東京都");
+
+  if (isTokyo) {
+    const wards23 = ["千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"];
+    if (wards23.some(w => raw.includes(w))) return "23";
+    return "都下";
   }
-  // 略称付与
+
+  let formatted = raw;
+  const wardIdx = raw.indexOf("区");
+  const cityIdx = raw.indexOf("市");
+  const gunIdx = raw.indexOf("郡");
+
+  if (wardIdx !== -1) {
+    let start = 0;
+    if (cityIdx !== -1 && cityIdx < wardIdx) start = cityIdx + 1;
+    formatted = raw.substring(start, wardIdx + 1);
+  } else if (cityIdx !== -1) {
+    formatted = raw.substring(0, cityIdx + 1);
+  } else if (gunIdx !== -1) {
+    formatted = raw.substring(0, gunIdx + 1);
+  }
+
   let suffixes = "";
   if (prefectures && prefectures.includes("神奈川県")) suffixes += "K";
-  if (address.includes("横浜市")) suffixes += "Y";
+  if (raw.includes("横浜市")) suffixes += "Y";
 
   return formatted + suffixes;
 }
