@@ -1108,15 +1108,20 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
 
   // Supabase equipment lookup
   useEffect(() => {
-    if (form.unit && form.unit.length >= 1) {
-      const timer = setTimeout(async () => {
-        const { data, error } = await supabase.from("equipment").select("property_name, area, prefecture").eq("unit_no", form.unit).single();
-        if (!error && data) {
-          setForm(p => ({ ...p, property: data.property_name, area: data.area, prefecture: data.prefecture }));
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
+    if (!form.unit || form.unit.trim().length === 0) return;
+
+    const timer = setTimeout(async () => {
+      const { data, error } = await supabase.from("equipment").select("property_name, area, prefecture").eq("unit_no", form.unit.trim()).single();
+      if (!error && data) {
+        setForm(p => ({
+          ...p,
+          property: data.property_name || p.property,
+          area: data.area || p.area,
+          prefecture: data.prefecture || p.prefecture
+        }));
+      }
+    }, 500);
+    return () => clearTimeout(timer);
   }, [form.unit]);
   const iStyle = { width: "100%", padding: "5px 7px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11, boxSizing: "border-box", background: "#fff" };
   return (
