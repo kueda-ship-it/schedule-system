@@ -192,6 +192,9 @@ function formatArea(address, prefectures) {
     return "都下";
   }
 
+  const prefMap = { "神奈川県": "K", "千葉県": "C", "埼玉県": "S", "大阪府": "O", "愛知県": "A", "福岡県": "F", "京都府": "K", "兵庫県": "H", "広島県": "H", "宮城県": "M", "岡山県": "O", "静岡県": "S", "熊本県": "K", "新潟県": "N", "北海道": "S" };
+  const cityMap = { "横浜市": "Y", "川崎市": "K", "相模原市": "S", "千葉市": "C", "さいたま市": "S", "大阪市": "O", "堺市": "S", "名古屋市": "N", "福岡市": "F", "北九州市": "K", "京都市": "K", "神戸市": "K", "広島市": "H", "仙台市": "S", "岡山市": "O", "静岡市": "S", "浜松市": "H", "熊本市": "K", "新潟市": "N", "札幌市": "S" };
+
   let formatted = raw;
   const wardIdx = raw.indexOf("区");
   const cityIdx = raw.indexOf("市");
@@ -208,8 +211,12 @@ function formatArea(address, prefectures) {
   }
 
   let suffixes = "";
-  if (prefectures && prefectures.includes("神奈川県")) suffixes += "K";
-  if (raw.includes("横浜市")) suffixes += "Y";
+  if (prefectures) {
+    const pKey = Object.keys(prefMap).find(k => prefectures.includes(k));
+    if (pKey) suffixes += prefMap[pKey];
+  }
+  const cKey = Object.keys(cityMap).find(k => raw.includes(k));
+  if (cKey) suffixes += cityMap[cKey];
 
   return formatted + suffixes;
 }
