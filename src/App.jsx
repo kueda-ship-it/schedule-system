@@ -1526,9 +1526,19 @@ function LoginScreen() {
         <button
           onClick={handleLogin}
           disabled={loading}
-          style={{ width: "100%", padding: "12px", background: "#1e40af", color: "#fff", border: "none", borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
+          style={{ width: "100%", padding: "12px", background: "#fff", color: "#333", border: "1px solid #c8c8c8", borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
         >
-          {loading ? "接続中..." : "Microsoft アカウントでログイン"}
+          {loading ? "接続中..." : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 21 21">
+                <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+              </svg>
+              <span>Microsoft アカウントでログイン</span>
+            </>
+          )}
         </button>
       </div>
     </div>
