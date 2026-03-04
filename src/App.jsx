@@ -438,13 +438,22 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                 {unassignedTickets.length > 0 && (
                   <div style={{ marginBottom: 4, borderRadius: 3, border: "1px dashed #f87171", background: "#fef2f2", overflow: "hidden" }}>
                     <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "#fee2e2", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
-                    {unassignedTickets.map(t => {
+                    {unassignedTickets.map((t, i) => {
                       const tc = typeColors[t.type] || typeColors["その他"];
                       return (
                         <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
-                          style={{ padding: "2px 3px", borderTop: "1px solid #fee2e2", background: tc.bg, cursor: "pointer", fontSize: 8 }}>
-                          <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
-                          <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.property}</div>
+                          style={{ padding: "1px 3px", borderTop: i === 0 ? "none" : "1px solid #e5e7eb", background: tc.bg, cursor: "pointer", fontSize: 8 }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", rowGap: 0, columnGap: 4, lineHeight: 1.1 }}>
+                            <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
+                            <div style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 700 }}>{t.property}</div>
+                            {t.timeSlot && <div style={{ color: "#64748b", fontWeight: 800 }}>{t.timeSlot}</div>}
+                          </div>
+                          <div style={{ display: "flex", gap: 3, fontSize: 7, color: "#475569", marginTop: 1, opacity: 0.9, lineHeight: 1.1 }}>
+                            {t.time && <span style={{ fontWeight: 700 }}>{t.time}</span>}
+                            <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.work}</span>
+                            <span>{t.area}</span>
+                            <span>{t.prefecture}</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -536,23 +545,16 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                                 }}
                                 onMouseOver={e => e.currentTarget.style.filter = "brightness(0.93)"}
                                 onMouseOut={e => e.currentTarget.style.filter = "none"}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden", whiteSpace: "nowrap" }}>
-                                  <div style={{ fontSize: 9, fontWeight: 900, color: tc.text, marginBottom: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <span>{t.type} {t.unit}</span>
-                                    {t.companion && <span style={{ color: "#64748b", fontSize: 7, fontStyle: "italic" }}>({(workers || []).find(w => String(w.id) === t.companion)?.name || t.companion})</span>}
-                                  </div>
-                                  <span style={{ color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{t.property}</span>
+                                <div style={{ display: "flex", flexWrap: "wrap", rowGap: 0, columnGap: 4, lineHeight: 1.1 }}>
+                                  <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
+                                  <div style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 700 }}>{t.property}</div>
+                                  {t.timeSlot && <div style={{ color: "#64748b", fontWeight: 800 }}>{t.timeSlot}</div>}
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden", whiteSpace: "nowrap" }}>
-                                  {t.time && <span style={{ color: "#475569", fontWeight: 700, flexShrink: 0, fontSize: 8 }}>{t.time}</span>}
-                                  <span style={{ color: "#475569", overflow: "hidden", textOverflow: "ellipsis", flex: 1, fontSize: 7 }}>{t.work}</span>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 2, border: "1px solid #cbd5e1", borderRadius: 2, padding: "0 2px", flexShrink: 0, background: "#fff" }}>
-                                    <span style={{ color: "#64748b" }}>{t.area}</span>
-                                    <span style={{ color: getPrefColor(t.prefecture), fontWeight: 700 }}>{t.prefecture}</span>
-                                  </div>
-                                  <div style={{ display: "flex", gap: 2, marginLeft: "auto", flexShrink: 0 }}>
-                                    {t.timeSlot && <span style={{ padding: "0 3px", minWidth: 14, height: 14, borderRadius: 7, background: "#dbeafe", color: "#1e40af", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 700 }} title={`所要時間 (TIME): ${t.timeSlot}`}>{t.timeSlot}</span>}
-                                  </div>
+                                <div style={{ display: "flex", gap: 3, fontSize: 7, color: "#475569", marginTop: 1, opacity: 0.9, lineHeight: 1.1 }}>
+                                  {t.time && <span style={{ fontWeight: 700 }}>{t.time}</span>}
+                                  <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.work}</span>
+                                  <span>{t.area}</span>
+                                  <span style={{ color: getPrefColor(t.prefecture), fontWeight: 700 }}>{t.prefecture}</span>
                                 </div>
                               </div>
                             );
@@ -1266,7 +1268,7 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
               alert("号機は半角数字1桁〜9桁で入力してください。");
               return;
             }
-            if (form.requestNo && !/^\d{11}$/.test(form.requestNo.trim())) {
+            if (form.requestNo && form.requestNo.trim() !== "" && !/^\d{11}$/.test(form.requestNo.trim())) {
               alert("依頼番号は半角数字11桁固定で入力してください。");
               return;
             }
