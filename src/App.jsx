@@ -1510,7 +1510,10 @@ function LoginScreen() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'azure',
-      options: { scopes: 'email profile' }
+      options: {
+        scopes: 'email profile',
+        redirectTo: window.location.origin + window.location.pathname
+      }
     });
     if (error) {
       alert("ログインエラー: " + error.message);
