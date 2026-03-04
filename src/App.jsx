@@ -1372,17 +1372,17 @@ export default function App() {
     const fetchWorkers = async () => {
       // 調査結果に基づき:
       // テーブル名: "profiles" (小文字)
-      // カラム名: "id", "display_name", "full_name", "eq_role" (role は存在しない)
+      // カラム名: "id", "display_name", "eq_role" (full_name は存在しない)
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, full_name, eq_role")
+        .select("id, display_name, eq_role")
         .not("eq_role", "is", null);
 
       if (!error && data) {
         const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
         const fetched = data.map((d, i) => ({
           id: d.id,
-          name: d.display_name || d.full_name || "Unknown",
+          name: d.display_name || "Unknown",
           color: colors[i % colors.length]
         }));
         if (fetched.length > 0) setWorkers(fetched);
