@@ -377,7 +377,7 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                               e.stopPropagation();
                               if (window.onWorkerMenu) window.onWorkerMenu(e.clientX, e.clientY, String(w.id), w.name, cell.dateStr);
                             }}>
-                            <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#e9d5ff", color: "#6b21a8", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }} title={w.name}>{w.id}</span>
+                            <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#e9d5ff", color: "#6b21a8", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }} title={w.name}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
                           </div>
                         ))}
                       </div>
@@ -432,7 +432,7 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                                 background: "#c084fc", color: "#fff",
                                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 7, fontWeight: 800,
-                              }}>{w.id}</span>
+                              }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
                               <span style={{ fontSize: 8, fontWeight: 700, color: "#9333ea" }}>{w.name}</span>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -596,7 +596,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
           <span style={{ fontSize: 11, fontWeight: 700, color: "#854d0e" }}>🌴 休暇:</span>
           {vacWorkers.map(w => (
             <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-              <span style={{ width: 18, height: 18, borderRadius: "50%", background: "#94a3b8", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 800 }}>{w.id}</span>
+              <span style={{ width: 18, height: 18, borderRadius: "50%", background: "#94a3b8", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
               <span style={{ color: "#94a3b8", fontWeight: 600 }}>{w.name}</span>
             </span>
           ))}
@@ -615,7 +615,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                   style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", border: "1px solid #e2e8f0", borderRadius: 4, background: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
                   onMouseOver={e => e.currentTarget.style.background = `${w.color}15`}
                   onMouseOut={e => e.currentTarget.style.background = "#fff"}>
-                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{w.id}</span>
+                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
                   <span style={{ color: w.color }}>{w.name}</span>
                 </button>
               ))}
@@ -641,7 +641,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                 background: isVac ? "#fefce8" : wt.length > 0 ? `${w.color}08` : "#fafbfc",
                 borderBottom: wt.length > 0 ? "1px solid #e5e7eb" : "none",
               }}>
-                <span style={{ width: 24, height: 24, borderRadius: "50%", background: isVac ? "#cbd5e1" : w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800 }}>{w.id}</span>
+                <span style={{ width: 24, height: 24, borderRadius: "50%", background: isVac ? "#cbd5e1" : w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
                 <span style={{ fontWeight: 700, fontSize: 12, color: isVac ? "#94a3b8" : w.color }}>{w.name}</span>
                 {isVac && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 3, background: "#fef3c7", color: "#92400e", fontWeight: 700 }}>🌴 休暇</span>}
                 {!isVac && <span style={{ fontSize: 10, color: "#94a3b8" }}>{wt.length}件</span>}
@@ -1030,7 +1030,7 @@ function TicketDetailModal({ ticket, workers, onClose, onEdit, onDelete }) {
             <div>
               <div style={labelStyle}><IconPerson size={10} color="#64748b" /> 対応者</div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                {w && <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{w.id}</span>}
+                {w && <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>}
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>{w ? w.name : "未割当"}</span>
               </div>
             </div>
@@ -1425,7 +1425,7 @@ function Legend({ workers }) {
       <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>対応者:</span>
       {workers.map(w => (
         <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10 }}>
-          <span style={{ width: 14, height: 14, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }}>{w.id}</span>
+          <span style={{ width: 14, height: 14, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
           <span style={{ color: "#475569", fontWeight: 600 }}>{w.name}</span>
         </span>
       ))}
