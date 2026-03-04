@@ -211,12 +211,14 @@ function formatArea(address, prefectures) {
   }
 
   let suffixes = "";
-  if (prefectures) {
-    const pKey = Object.keys(prefMap).find(k => prefectures.includes(k));
-    if (pKey) suffixes += prefMap[pKey];
-  }
   const cKey = Object.keys(cityMap).find(k => raw.includes(k));
-  if (cKey) suffixes += cityMap[cKey];
+  if (cKey) {
+    if (prefectures) {
+      const pKey = Object.keys(prefMap).find(k => prefectures.includes(k));
+      if (pKey) suffixes += prefMap[pKey];
+    }
+    suffixes += cityMap[cKey];
+  }
 
   return formatted + suffixes;
 }
