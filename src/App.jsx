@@ -167,6 +167,23 @@ const TYPE_COLOR_PRESETS = [
 ];
 const resultColors = { "完了": "#bbf7d0", "未完了": "#fef08a", "キャンセル": "#e2e8f0", "保留": "#fecaca" };
 
+// --- 祝日定義 (2026-2027) ---
+const HOLIDAYS = {
+  "2026-01-01": "元日", "2026-01-12": "成人の日", "2026-02-11": "建国記念の日", "2026-02-23": "天皇誕生日",
+  "2026-03-20": "春分の日", "2026-04-29": "昭和の日", "2026-05-03": "憲法記念日", "2026-05-04": "みどりの日",
+  "2026-05-05": "こどもの日", "2026-05-06": "振替休日", "2026-07-20": "海の日", "2026-08-11": "山の日",
+  "2026-09-21": "敬老の日", "2026-09-22": "国民の休日", "2026-09-23": "秋分の日", "2026-10-12": "スポーツの日",
+  "2026-11-03": "文化の日", "2026-11-23": "勤労感謝の日",
+  "2027-01-01": "元日", "2027-01-11": "成人の日", "2027-02-11": "建国記念の日", "2027-02-23": "天皇誕生日",
+  "2027-03-21": "春分の日", "2027-03-22": "振替休日", "2027-04-29": "昭和の日", "2027-05-03": "憲法記念日",
+  "2027-05-04": "みどりの日", "2027-05-05": "こどもの日", "2027-07-19": "海の日", "2027-08-11": "山の日",
+  "2027-09-20": "敬老の日", "2027-09-23": "秋分の日", "2027-10-11": "スポーツの日", "2027-11-03": "文化の日",
+  "2027-11-23": "勤労感謝の日"
+};
+function isHoliday(dateStr) {
+  return HOLIDAYS[dateStr] || false;
+}
+
 
 
 
@@ -382,11 +399,13 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
             const isSat = ci === 5, isSun = ci === 6;
             const isToday = cell.dateStr === todayStr;
             const { withTickets, noTickets, onVacation, unassignedTickets, total } = buildDayData(cell.dateStr);
+            const holidayName = isHoliday(cell.dateStr);
+            const isHolidayDay = !!holidayName;
 
             return (
               <div key={ci} style={{
                 borderRight: ci < 6 ? "1px solid #e2e8f0" : "none",
-                background: isToday ? "#fffbeb" : isSun ? "#fffbfb" : isSat ? "#f8faff" : "#fff",
+                background: isToday ? "#fffbeb" : (isSun || isHolidayDay) ? "#fff1f2" : isSat ? "#f8faff" : "#fff",
                 padding: 2,
                 display: "flex", flexDirection: "column",
                 minHeight: 28,
@@ -401,11 +420,12 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                   <span style={{
                     fontSize: 13, fontWeight: 800,
                     background: isToday ? "#f59e0b" : "transparent",
-                    color: isToday ? "#fff" : isSun ? "#dc2626" : isSat ? "#2563eb" : "#1e293b",
+                    color: isToday ? "#fff" : (isSun || isHolidayDay) ? "#dc2626" : isSat ? "#2563eb" : "#1e293b",
                     borderRadius: isToday ? 10 : 0,
                     padding: isToday ? "0 5px" : "0",
                     lineHeight: "18px",
                   }}>{cell.day}</span>
+                  {holidayName && <span style={{ fontSize: 7, color: "#dc2626", fontWeight: 700 }}>({holidayName})</span>}
                   {total > 0 && <span style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700 }}>{total}件</span>}
                   <button onClick={e => { e.stopPropagation(); onAdd(cell.dateStr); }} title="追加" style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 3, cursor: "pointer", padding: "0px 1px", display: "flex", alignItems: "center", lineHeight: 1, transition: "background 0.15s" }}
                     onMouseOver={e => e.currentTarget.style.background = "#dbeafe"}
@@ -636,6 +656,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
   });
 
   const activeWorkers = workers.filter(w => !vacSet.has(w.id));
+  const vacWorkers = workers.filter(w => vacSet.has(w.id));
   const unassignedList = grouped["none"] || [];
   const displayWorkers = [...activeWorkers, ...vacWorkers];
 
@@ -651,11 +672,15 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
   // Move ticket modal
   const [moveTicket, setMoveTicket] = useState(null);
 
+  const isHolidayAtDay = isHoliday(dateStr);
+  const isSundayAtDay = d.getDay() === 0;
+  const dateColorAtDay = (isSundayAtDay || isHolidayAtDay) ? "#ef4444" : (d.getDay() === 6 ? "#2563eb" : "#1e293b");
+
   return (
     <div style={{ padding: "0 4px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center", gap: 12 }}>
-          <span>{d.getMonth() + 1}月{d.getDate()}日（{dow}）</span>
+          <span style={{ color: dateColorAtDay }}>{d.getMonth() + 1}月{d.getDate()}日（{dow}）{isHolidayAtDay ? ` ${isHolidayAtDay}` : ""}</span>
           <span style={{ fontSize: 12, fontWeight: 500, background: "#f1f5f9", padding: "2px 8px", borderRadius: 12, color: "#475569" }}>{dayTickets.length}件</span>
         </h2>
         <button onClick={() => onAdd(dateStr)} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>＋ 追加</button>
