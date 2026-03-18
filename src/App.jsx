@@ -1,5 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, Component } from "react";
 import { supabase } from "./supabase";
+import initialTicketsData from "./initialTickets.json";
 
 const IconVacationSolid = ({ size = 24, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M11 2v4h2V2h-2zm4.3 2.3l-1.4 1.4 2.8 2.8 1.4-1.4-2.8-2.8zM19 11v2h4v-2h-4zm-2.3 4.3l-2.8 2.8 1.4 1.4 2.8-2.8-1.4-1.4zM2 13h4v-2H2v2zm2.3-4.3l1.4-1.4 2.8 2.8-1.4 1.4-2.8-2.8zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /></svg>
@@ -49,6 +50,9 @@ const IconX = ({ size = 14, color = "currentColor" }) => (
 const IconPerson = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21c0-3.5 3-6.5 6.5-6.5s6.5 3 6.5 6.5"></path></svg>
 );
+const IconPeople = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+);
 const IconClipboard = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="9" y1="10" x2="15" y2="10"></line><line x1="9" y1="14" x2="15" y2="14"></line><line x1="9" y1="6" x2="15" y2="6"></line></svg>
 );
@@ -58,20 +62,29 @@ const IconWrench = ({ size = 14, color = "currentColor" }) => (
 const IconNote = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
 );
+const IconSun = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+);
+const IconMoon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+);
+const IconResize = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+);
 const MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 const DOW_HEADERS = ["月", "火", "水", "木", "金", "土", "日"];
 const TYPES = ["点検", "修理", "設置", "撤去", "メンテナンス", "その他"];
 const DEFAULT_TYPE_COLORS = {
-  "点検": { bg: "#dbeafe", text: "#1e40af", badge: "#93c5fd" },
-  "修理": { bg: "#fee2e2", text: "#991b1b", badge: "#fca5a5" },
-  "設置": { bg: "#dcfce7", text: "#166534", badge: "#86efac" },
-  "撤去": { bg: "#f3e8ff", text: "#6b21a8", badge: "#d8b4fe" },
-  "メンテナンス": { bg: "#fef9c3", text: "#854d0e", badge: "#fde047" },
-  "その他": { bg: "#f1f5f9", text: "#475569", badge: "#cbd5e1" },
+  "点検": { bg: "var(--type-bg-inspect)", text: "var(--type-text-inspect)", badge: "var(--type-badge-inspect)" },
+  "修理": { bg: "var(--type-bg-repair)", text: "var(--type-text-repair)", badge: "var(--type-badge-repair)" },
+  "設置": { bg: "var(--type-bg-install)", text: "var(--type-text-install)", badge: "var(--type-badge-install)" },
+  "撤去": { bg: "var(--type-bg-remove)", text: "var(--type-text-remove)", badge: "var(--type-badge-remove)" },
+  "メンテナンス": { bg: "var(--type-bg-maint)", text: "var(--type-text-maint)", badge: "var(--type-badge-maint)" },
+  "その他": { bg: "var(--type-bg-other)", text: "var(--type-text-other)", badge: "var(--type-badge-other)" },
 };
 const STATUSES = ["", "フリー", "休暇"];
 const AREAS = ["北海道", "東北", "関東", "中部", "近畿", "中国", "四国", "九州"];
-const RESULTS = ["完了", "未完了", "キャンセル", "保留"];
+const RESULTS = ["完了", "未完了", "キャンセル", "現地都合でキャンセル", "保留"];
 const PREFECTURES = ["北海道", "青森", "岩手", "宮城", "秋田", "山形", "福島", "茨城", "栃木", "群馬", "埼玉", "千葉", "東京", "神奈川", "新潟", "富山", "石川", "福井", "山梨", "長野", "岐阜", "静岡", "愛知", "三重", "滋賀", "京都", "大阪", "兵庫", "奈良", "和歌山", "鳥取", "島根", "岡山", "広島", "山口", "徳島", "香川", "愛媛", "高知", "福岡", "佐賀", "長崎", "熊本", "大分", "宮崎", "鹿児島", "沖縄"];
 
 const getPrefColor = (pref) => {
@@ -113,44 +126,56 @@ const TIME_OPTIONS = (() => {
 })();
 
 const INITIAL_WORKERS = [
-  { id: 1, name: "田中", color: "#2563eb" },
-  { id: 2, name: "佐藤", color: "#dc2626" },
-  { id: 3, name: "鈴木", color: "#16a34a" },
-  { id: 4, name: "高橋", color: "#9333ea" },
-  { id: 5, name: "渡辺", color: "#ca8a04" },
-  { id: 6, name: "伊藤", color: "#0891b2" },
-  { id: 7, name: "山本", color: "#be123c" },
-  { id: 8, name: "中村", color: "#7c3aed" },
+  { id: "平本", name: "平本", color: "#2563eb" },
+  { id: "神崎", name: "神崎", color: "#dc2626" },
+  { id: "原", name: "原", color: "#16a34a" },
+  { id: "佐藤", name: "佐藤", color: "#9333ea" },
+  { id: "築地", name: "築地", color: "#ca8a04" },
+  { id: "清水", name: "清水", color: "#0891b2" },
+  { id: "岡﨑", name: "岡﨑", color: "#be123c" },
+  { id: "淺沼", name: "淺沼", color: "#7c3aed" },
+  { id: "中川", name: "中川", color: "#ea580c" },
+  { id: "小齊平", name: "小齊平", color: "#059669" },
+  { id: "豊田", name: "豊田", color: "#4f46e5" },
+  { id: "濱田", name: "濱田", color: "#e11d48" },
+  { id: "松下", name: "松下", color: "#0d9488" },
+  { id: "阿部", name: "阿部", color: "#d97706" },
+  { id: "藤井", name: "藤井", color: "#7c2d12" },
+  { id: "杉山", name: "杉山", color: "#6d28d9" },
+  { id: "大家", name: "大家", color: "#0369a1" },
+  { id: "富本", name: "富本", color: "#b91c1c" },
+  { id: "高杉", name: "高杉", color: "#15803d" },
+  { id: "高橋", name: "高橋", color: "#a21caf" },
 ];
 
 const ALL_COLS = [
-  { key: "type", label: "タイプ", w: 56, type: "select", options: TYPES },
-  { key: "box", label: "BOX", w: 48, type: "text" },
-  { key: "unit", label: "号機", w: 40, type: "text" },
-  { key: "property", label: "物件名", w: 130, type: "text" },
-  { key: "category", label: "種別", w: 48, type: "text" },
-  { key: "work", label: "作業内容", w: 130, type: "text" },
-  { key: "time", label: "時間指定", w: 52, type: "text" },
-  { key: "person", label: "対応者", w: 52, type: "worker", dailyOnly: true },
-  { key: "area", label: "エリア", w: 48, type: "text" },
-  { key: "prefecture", label: "県別", w: 48, type: "select", options: PREFECTURES },
-  { key: "travel", label: "移動", w: 40, type: "text" },
-  { key: "companion", label: "同行者", w: 52, type: "text" },
-  { key: "requestNo", label: "依頼番号", w: 72, type: "text" },
-  { key: "timeSlot", label: "TIME", w: 52, type: "select", options: TIME_OPTIONS },
-  { key: "course", label: "コース", w: 48, type: "text" },
-  { key: "result", label: "結果", w: 52, type: "select", options: RESULTS },
-  { key: "responseDate", label: "対応日", w: 76, type: "date" },
-  { key: "faultCategory", label: "障害区分", w: 90, type: "select", options: FAULT_CATEGORIES },
-  { key: "faultLevel", label: "Level", w: 36, type: "auto" },
-  { key: "notes", label: "備考", w: 100, type: "text" },
+  { key: "type", label: "タイプ", w: 62, type: "select", options: TYPES },
+  { key: "box", label: "BOX", w: 53, type: "text" },
+  { key: "unit", label: "号機", w: 44, type: "text" },
+  { key: "property", label: "物件名", w: 160, type: "text" },
+  { key: "category", label: "種別", w: 60, type: "text" },
+  { key: "work", label: "作業内容", w: 160, type: "text" },
+  { key: "time", label: "時間指定", w: 70, type: "text" },
+  { key: "person", label: "対応者", w: 70, type: "worker", dailyOnly: true },
+  { key: "area", label: "エリア", w: 65, type: "text" },
+  { key: "prefecture", label: "県別", w: 70, type: "select", options: PREFECTURES },
+  { key: "travel", label: "移動", w: 44, type: "text" },
+  { key: "companion", label: "同行者", w: 57, type: "text" },
+  { key: "requestNo", label: "依頼番号", w: 79, type: "text" },
+  { key: "timeSlot", label: "TIME", w: 57, type: "select", options: TIME_OPTIONS },
+  { key: "course", label: "コース", w: 53, type: "text" },
+  { key: "result", label: "結果", w: 57, type: "select", options: RESULTS },
+  { key: "responseDate", label: "対応日", w: 84, type: "date" },
+  { key: "faultCategory", label: "障害区分", w: 99, type: "select", options: FAULT_CATEGORIES },
+  { key: "faultLevel", label: "Level", w: 40, type: "auto" },
+  { key: "notes", label: "備考", w: 110, type: "text" },
 ];
 
 const emptyTicket = () => ({
   id: Math.random().toString(36).substring(2, 11), date: "", type: "", box: "", unit: "", property: "", category: "",
   work: "", time: "", person: "", area: "", prefecture: "", travel: "", companion: "",
   requestNo: "", timeSlot: "", course: "", result: "", responseDate: "",
-  faultCategory: "", faultLevel: "", notes: "",
+  faultCategory: "", faultLevel: "", notes: "", createdBy: ""
 });
 
 const typeColors = { ...DEFAULT_TYPE_COLORS };
@@ -165,7 +190,13 @@ const TYPE_COLOR_PRESETS = [
   { bg: "#fff7ed", text: "#9a3412", badge: "#fdba74" },
   { bg: "#f1f5f9", text: "#475569", badge: "#cbd5e1" },
 ];
-const resultColors = { "完了": "#bbf7d0", "未完了": "#fef08a", "キャンセル": "#e2e8f0", "保留": "#fecaca" };
+const resultColors = {
+  "完了": "var(--res-bg-done)",
+  "未完了": "var(--res-bg-pending)",
+  "キャンセル": "var(--res-bg-cancel)",
+  "現地都合でキャンセル": "var(--res-bg-cancel)",
+  "保留": "var(--res-bg-other)"
+};
 
 // --- 祝日定義 (2026-2027) ---
 const HOLIDAYS = {
@@ -192,11 +223,37 @@ function fmtDate(y, m, d) { return `${y}-${String(m + 1).padStart(2, "0")}-${Str
 function getDaysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function parseHours(t) {
   if (!t) return 0;
-  if (t.includes(":")) {
-    const [h, min] = t.split(":").map(Number);
+  if (typeof t === 'number') return t;
+  const ts = String(t).trim();
+  if (ts.includes(":")) {
+    const [h, min] = ts.split(":").map(Number);
     return h + (min || 0) / 60;
   }
-  return parseFloat(t) || 0;
+  const parsed = parseFloat(ts);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+function formatExcelTime(val) {
+  let n = val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return val;
+    // 数値として解釈可能かチェック
+    const parsed = parseFloat(trimmed);
+    if (!isNaN(parsed) && !trimmed.includes(":")) {
+      n = parsed;
+    } else {
+      return val;
+    }
+  }
+  
+  if (typeof n !== 'number' || isNaN(n)) return val;
+  if (n < 0 || n >= 1) return val; 
+  
+  const totalMinutes = Math.round(n * 24 * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 function formatArea(address, prefectures) {
   if (!address) return "";
@@ -237,7 +294,43 @@ function formatArea(address, prefectures) {
     suffixes += cityMap[cKey];
   }
 
-  return formatted + suffixes;
+  return formatted;
+}
+
+function UserAvatar({ user, size = 24, style = {} }) {
+  if (!user) return null;
+  const initial = typeof user.id === "string" && !user.id.includes("-") ? (user.name?.charAt(0) || "?") : (user.name?.charAt(0) || "?");
+
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    background: user.color || "var(--bg-alt)",
+    color: "#fff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: Math.max(8, Math.floor(size * 0.45)),
+    fontWeight: 800,
+    flexShrink: 0,
+    overflow: "hidden",
+    lineHeight: 1,
+    ...style
+  };
+
+  if (user.avatar_url2 || user.avatar_url) {
+    return (
+      <div style={baseStyle}>
+        <img src={user.avatar_url2 || user.avatar_url} alt={user.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+    );
+  }
+
+  return (
+    <span style={baseStyle}>
+      <span style={{ display: "block", transform: "translateY(0.5px)" }}>{initial}</span>
+    </span>
+  );
 }
 
 function getMonthCalendar(year, month) {
@@ -258,52 +351,16 @@ function getMonthCalendar(year, month) {
   return weeks;
 }
 
-function generateSampleData(workers) {
-  const data = [];
-  const properties = ["プリンスハイツ品川", "ダイバーシティ台場", "グローベル品川", "コスモタウン新橋", "ライフレジデンス中野", "パークハウス錦糸町", "HARUM FLAG", "フォルテアストリア", "TOWER&GARDEN", "フランス橋本", "パークシティ中央湊", "BRITH THE TOWER", "マイキャッスル新宿", "セーサイドレジデンス", "アティーナ大森", "オーベルグランディオ"];
-  const works = ["通常開閉", "給排水管更新", "全面改修", "外壁洗浄", "設備点検", "消防設備点検", "エレベーター保守", "配管更新", "電気設備点検", "空調機器点検"];
-  const now = new Date();
-  for (let mo = 0; mo < 3; mo++) {
-    const month = (now.getMonth() + mo) % 12;
-    const year = now.getFullYear() + (now.getMonth() + mo >= 12 ? 1 : 0);
-    const days = getDaysInMonth(year, month);
-    for (let d = 1; d <= days; d++) {
-      const dow = new Date(year, month, d).getDay();
-      if ((dow === 0 || dow === 6) && Math.random() > 0.15) continue;
-      const count = Math.floor(Math.random() * 10) + 4;
-      for (let i = 0; i < count; i++) {
-        const w = workers[Math.floor(Math.random() * workers.length)];
-        data.push({
-          id: Math.random().toString(36).substring(2, 11),
-          date: fmtDate(year, month, d),
-          type: TYPES[Math.floor(Math.random() * TYPES.length)],
-          box: `B${String(Math.floor(Math.random() * 50) + 1).padStart(3, "0")}`,
-          unit: `${Math.floor(Math.random() * 20) + 1}`,
-          property: properties[Math.floor(Math.random() * properties.length)],
-          category: ["工事", "押替", "管理", "フリー"][Math.floor(Math.random() * 4)],
-          work: works[Math.floor(Math.random() * works.length)],
-          time: `${Math.floor(Math.random() * 4) + 1}h`,
-          person: String(w.id),
-          area: AREAS[Math.floor(Math.random() * AREAS.length)],
-          prefecture: PREFECTURES[Math.floor(Math.random() * PREFECTURES.length)],
-          travel: ["", "車", "電車", "新幹線"][Math.floor(Math.random() * 4)],
-          companion: Math.random() > 0.7 ? String(workers[Math.floor(Math.random() * workers.length)].id) : "",
-          requestNo: Math.random() > 0.5 ? `REQ-${Math.floor(Math.random() * 9000) + 1000}` : "",
-          timeSlot: ["AM", "PM", "終日", ""][Math.floor(Math.random() * 4)],
-          course: ["A", "B", "C", "D", ""][Math.floor(Math.random() * 5)],
-          result: Math.random() > 0.5 ? RESULTS[Math.floor(Math.random() * RESULTS.length)] : "",
-          notes: Math.random() > 0.8 ? "特記事項あり" : "",
-        });
-      }
-    }
-  }
-  return data;
-}
-
 
 
 // --- Month Calendar View (grouped by worker) ---
-function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, onEdit, onView, onAdd, onReorder, onMoveTicket, isAdmin }) {
+function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, onDayClick, onEdit, onView, onAdd, onReorder, onMoveTicket, isAdmin, theme, hoveredDate, setHoveredDate }) {
+  const [collapsedWorkers, setCollapsedWorkers] = useState({}); // { "date-workerId": boolean }
+
+  const toggleCollapse = (dateStr, workerId) => {
+    const key = `${dateStr}-${workerId}`;
+    setCollapsedWorkers(prev => ({ ...prev, [key]: !prev[key] }));
+  };
   const weeks = useMemo(() => getMonthCalendar(year, month), [year, month]);
   const ticketsByDate = useMemo(() => {
     const m = {};
@@ -323,18 +380,31 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
     const dayT = ticketsByDate[dateStr] || [];
     const vacSet = vacations[dateStr] || new Set();
 
-    // Group tickets by worker
+    // Group tickets by worker (ID match, Full Name match, or Surname match)
     const byWorker = { "none": [] };
-    workers.forEach(w => { byWorker[String(w.id)] = []; });
-    dayT.forEach(t => {
-      const k = (t.person && byWorker[t.person]) ? t.person : "none";
+    workers.forEach(w => {
+      byWorker[String(w.id)] = [];
+      if (w.name) byWorker[w.name] = byWorker[String(w.id)];
+    });
+    (dayT || []).forEach(t => {
+      if (!t.person) { byWorker["none"].push(t); return; }
+
+      // 完全一致または前方一致（苗字など）でマッチさせる
+      const targetWorker = workers.find(w =>
+        String(w.id) === t.person ||
+        w.name === t.person ||
+        (w.name && t.person && (w.name.startsWith(t.person) || t.person.startsWith(w.name)))
+      );
+
+      const k = targetWorker ? String(targetWorker.id) : "none";
+      if (!byWorker[k]) byWorker[k] = []; // fallback
       byWorker[k].push(t);
     });
 
     // Find companion IDs
     const companionIds = new Set();
     dayT.forEach(t => {
-      if (t.companion) {
+      if (typeof t.companion === "string") {
         t.companion.split(/[,、\s]+/).forEach(c => { if (c.trim()) companionIds.add(c.trim()); });
       }
     });
@@ -368,18 +438,18 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
   }, [ticketsByDate, workers, vacations]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid #c7cbd1", borderRadius: 4, overflow: "hidden", background: "#fff" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid var(--calendar-grid-border)", borderRadius: 4, overflow: "hidden", background: "var(--bg-app)" }}>
       {/* DOW header */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", borderBottom: "2px solid #94a3b8" }}>
+      <div className="glass" style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", borderBottom: "1px solid var(--calendar-grid-border)", position: "sticky", top: 0, zIndex: 10 }}>
         {DOW_HEADERS.map((d, i) => {
           const isSat = i === 5, isSun = i === 6;
           return (
             <div key={i} style={{
               padding: "6px 0", textAlign: "center", fontSize: 12, fontWeight: 800,
               letterSpacing: 2,
-              color: isSun ? "#dc2626" : isSat ? "#2563eb" : "#1e293b",
-              background: isSun ? "#fef2f2" : isSat ? "#eff6ff" : "#f1f5f9",
-              borderRight: i < 6 ? "1px solid #d1d5db" : "none",
+              color: isSun ? "#dc2626" : isSat ? "#2563eb" : "var(--text-main)",
+              background: isSun ? "var(--bg-alt)" : isSat ? "var(--bg-alt)" : "var(--bg-alt)",
+              borderRight: i < 6 ? "1px solid var(--calendar-cell-border)" : "none",
             }}>{d}</div>
           );
         })}
@@ -388,91 +458,116 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
       {/* Week rows */}
       {weeks.map((week, wi) => (
         <div key={wi} style={{
-          display: "grid", gridTemplateColumns: "repeat(7,1fr)",
-          borderBottom: wi < weeks.length - 1 ? "1px solid #cbd5e1" : "none",
+          display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+          borderBottom: wi < weeks.length - 1 ? "1px solid var(--calendar-grid-border)" : "none",
           alignItems: "stretch",
         }}>
           {week.map((cell, ci) => {
             if (!cell) return (
-              <div key={ci} style={{ background: "#f8fafc", borderRight: ci < 6 ? "1px solid #e2e8f0" : "none", padding: 3 }} />
+              <div key={ci} style={{ background: "var(--bg-body)", borderRight: ci < 6 ? "1px solid var(--calendar-cell-border)" : "none", padding: 3 }} />
             );
             const isSat = ci === 5, isSun = ci === 6;
             const isToday = cell.dateStr === todayStr;
-            const { withTickets, noTickets, onVacation, unassignedTickets, total } = buildDayData(cell.dateStr);
             const holidayName = isHoliday(cell.dateStr);
             const isHolidayDay = !!holidayName;
-
+            const { withTickets, noTickets, onVacation, unassignedTickets, total } = buildDayData(cell.dateStr);
+            const isHovered = hoveredDate === cell.dateStr;
             return (
-              <div key={ci} style={{
-                borderRight: ci < 6 ? "1px solid #e2e8f0" : "none",
-                background: isToday ? "#fffbeb" : (isSun || isHolidayDay) ? "#fff1f2" : isSat ? "#f8faff" : "#fff",
-                padding: 2,
-                display: "flex", flexDirection: "column",
-                minHeight: 28,
-              }}>
+              <div key={ci} 
+                className={isToday ? "today-premium" : ""}
+                title={holidayName ? holidayName : ""}
+                onMouseEnter={() => setHoveredDate(cell.dateStr)}
+                onMouseLeave={() => setHoveredDate(null)}
+                style={{
+                  borderRight: ci < 6 ? "1px solid var(--calendar-cell-border)" : "none",
+                  background: isToday ? "var(--bg-today)" : (isSun || isHolidayDay) ? "var(--bg-sun)" : isSat ? "var(--bg-sat)" : "var(--bg-app)",
+                  padding: 2,
+                  display: "flex", flexDirection: "column",
+                  minHeight: 140,
+                  transition: "background 0.2s, transform 0.1s",
+                  boxShadow: isToday ? "inset 0 0 10px rgba(59,130,246,0.1)" : "none",
+                  outline: isHovered ? "2px solid #ef4444" : "none",
+                  zIndex: isHovered ? 5 : 1,
+                }}
+              >
                 {/* Day number + count + unassigned */}
                 <div style={{
-                  display: "flex", alignItems: "center", gap: 4,
-                  padding: "1px 3px 2px", marginBottom: 1,
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "2px 4px",
                   cursor: "pointer",
-                  borderBottom: "1px solid #f1f5f9"
+                  borderBottom: "1px solid var(--border-light)"
                 }} onClick={() => onDayClick(cell.dateStr)}>
                   <span style={{
-                    fontSize: 13, fontWeight: 800,
-                    background: isToday ? "#f59e0b" : "transparent",
-                    color: isToday ? "#fff" : (isSun || isHolidayDay) ? "#dc2626" : isSat ? "#2563eb" : "#1e293b",
-                    borderRadius: isToday ? 10 : 0,
-                    padding: isToday ? "0 5px" : "0",
-                    lineHeight: "18px",
+                    fontSize: 12, fontWeight: 900,
+                    width: 24, height: 24,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: isToday ? "var(--accent-today)" : "transparent",
+                    color: isToday 
+                      ? ((isSun || isHolidayDay) ? (theme === 'dark' ? "#fda4af" : "#fff") : isSat ? (theme === 'dark' ? "#93c5fd" : "#fff") : "#fff")
+                      : ((isSun || isHolidayDay) ? "#dc2626" : isSat ? "#2563eb" : "var(--text-main)"),
+                    borderRadius: "100%",
+                    lineHeight: 1,
+                    flexShrink: 0,
+                    boxShadow: isToday ? "0 0 6px rgba(6, 182, 212, 0.35)" : "none",
                   }}>{cell.day}</span>
-                  {holidayName && <span style={{ fontSize: 7, color: "#dc2626", fontWeight: 700 }}>({holidayName})</span>}
-                  {total > 0 && <span style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700 }}>{total}件</span>}
-                  <button onClick={e => { e.stopPropagation(); onAdd(cell.dateStr); }} title="追加" style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 3, cursor: "pointer", padding: "0px 1px", display: "flex", alignItems: "center", lineHeight: 1, transition: "background 0.15s" }}
+                  {total > 0 && <span style={{ fontSize: 9, color: "var(--text-main)", fontWeight: 800, opacity: 0.8 }}>{total}件</span>}
+                  <button onClick={e => { e.stopPropagation(); onAdd(cell.dateStr); }} title="追加" style={{ background: "none", border: "1px solid var(--border-color)", borderRadius: 3, cursor: "pointer", padding: "0px 1px", display: "flex", alignItems: "center", lineHeight: 1, transition: "background 0.15s" }}
                     onMouseOver={e => e.currentTarget.style.background = "#dbeafe"}
                     onMouseOut={e => e.currentTarget.style.background = "none"}>
                     <IconPlus size={10} color="#2563eb" />
                   </button>
-                  <div style={{ flex: 1 }} />
-                  {/* Unassigned tickets & no-ticket workers */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                </div>
+
+                {/* Status Badges line */}
+                {(unassignedTickets.length > 0 || noTickets.length > 0) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 4px", flexWrap: "wrap", borderBottom: (unassignedTickets.length > 0 || noTickets.length > 0) ? "1px solid var(--border-light)" : "none", marginBottom: 2 }}>
                     {unassignedTickets.length > 0 && (
-                      <span style={{ width: 14, height: 14, borderRadius: "50%", background: "#f87171", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }} title="未対応チケットあり">{unassignedTickets.length}</span>
+                      <span style={{ 
+                        width: 18, height: 18, borderRadius: "50%", 
+                        background: "#ef4444", color: "#fff", 
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", 
+                        fontSize: 10, fontWeight: 900, 
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                        border: isHovered ? "2px solid #fff" : "none"
+                      }} title="未対応チケットあり">{unassignedTickets.length}</span>
                     )}
                     {noTickets.length > 0 && (
-                      <div style={{ display: "flex", gap: 1 }}>
+                      <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                         {noTickets.map(({ worker: w }) => (
                           <div key={w.id} style={{ display: "inline-block", cursor: "pointer" }}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (window.onWorkerMenu) window.onWorkerMenu(e.clientX, e.clientY, String(w.id), w.name, cell.dateStr);
                             }}>
-                            <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#e9d5ff", color: "#6b21a8", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }} title={w.name}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
+                            <UserAvatar user={w} size={18} style={{ cursor: "pointer", border: "1px solid var(--border-color)" }} />
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-                </div>
+                )}
 
                 {/* Unassigned tickets rows */}
                 {unassignedTickets.length > 0 && (
-                  <div style={{ marginBottom: 4, borderRadius: 3, border: "1px dashed #f87171", background: "#fef2f2", overflow: "hidden" }}>
-                    <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "#fee2e2", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
+                  <div style={{ marginBottom: 4, borderRadius: 3, border: "1px dashed #f87171", background: "var(--bg-body)", overflow: "hidden" }}>
+                    <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "rgba(239, 68, 68, 0.1)", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
                     {unassignedTickets.map((t, i) => {
                       const tc = typeColors[t.type] || typeColors["その他"];
                       return (
                         <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
-                          style={{ padding: "1px 3px", borderTop: i === 0 ? "none" : "1px solid #e5e7eb", background: tc.bg, cursor: "pointer", fontSize: 8 }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", rowGap: 0, columnGap: 4, lineHeight: 1.1 }}>
-                            <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
-                            <div style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 700 }}>{t.property}</div>
-                            {t.timeSlot && <div style={{ color: "#64748b", fontWeight: 800 }}>{t.timeSlot}</div>}
+                          style={{ padding: "4px 6px", borderTop: i === 0 ? "none" : "1px solid var(--border-light)", background: tc.bg, cursor: "pointer", fontSize: 11 }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", rowGap: 2, columnGap: 6, lineHeight: 1.2 }}>
+                            <div style={{ fontSize: 11, fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
+                            <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: "var(--text-main)" }}>{t.property}</div>
+                            {t.timeSlot && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 800 }}>{t.timeSlot}</div>}
                           </div>
-                          <div style={{ display: "flex", gap: 3, fontSize: 7, color: "#475569", marginTop: 1, opacity: 0.9, lineHeight: 1.1 }}>
-                            {t.time && <span style={{ fontWeight: 700 }}>{t.time}</span>}
-                            <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.work}</span>
-                            <span>{t.area}</span>
-                            <span>{t.prefecture}</span>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "var(--text-sub)", marginTop: 2, opacity: 0.9, lineHeight: 1.2 }}>
+                            <div style={{ color: "var(--text-main)", fontWeight: 800, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              {t.time && <span style={{ fontWeight: 800, color: "var(--text-main)" }}>{formatExcelTime(t.time)}</span>}
+                              <span>{t.area}</span>
+                              <span style={{ color: getPrefColor(t.prefecture), fontWeight: 800 }}>{t.prefecture}</span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -485,16 +580,23 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                   {withTickets.map(({ worker: w, tickets: wt }) => {
                     const totalH = wt.reduce((s, ticket) => {
                       let t = s;
-                      const start = ticket.timeSlot ? parseHours(ticket.timeSlot) : parseHours(ticket.time);
-                      const end = ticket.timeSlot === "AM" ? 12 : ticket.timeSlot === "PM" ? 17 : ticket.timeSlot === "終日" ? 17 : start + parseHours(ticket.time);
-                      const bh = end - start;
-                      if (bh > 0) t += bh;
+                      let duration = 0;
+                      if (ticket.timeSlot === "AM") duration = 3;
+                      else if (ticket.timeSlot === "PM") duration = 4;
+                      else if (ticket.timeSlot === "終日") duration = 7;
+                      else if (ticket.timeSlot === "夜間") duration = 2;
+                      else if (ticket.time) {
+                        // time 欄に数値（h）が入っている場合を優先
+                        duration = parseHours(ticket.time);
+                      }
+                      
+                      if (duration > 0) t += duration;
                       return t;
                     }, 0);
                     return (
                       <div key={w.id} style={{
                         marginBottom: 2, borderRadius: 3, overflow: "hidden",
-                        border: `1px solid #e9d5ff`,
+                        border: "1px solid var(--border-color)",
                         display: "flex",
                         background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#eff6ff" : "transparent"
                       }}
@@ -508,12 +610,12 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                           setMonthDragOver(null); setMonthDragId(null);
                         }}>
                         {/* Left color bar */}
-                        <div style={{ width: 3, background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#3b82f6" : "#d8b4fe", flexShrink: 0 }} />
-                        <div style={{ flex: 1, background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#eff6ff" : "#faf5ff" }}>
+                        <div style={{ width: 3, background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#3b82f6" : "#c084fc", flexShrink: 0 }} />
+                        <div style={{ flex: 1, background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "var(--bg-body)" : "var(--bg-app)" }}>
                           {/* Worker header */}
                           <div style={{
                             display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "1px 3px", background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#dbeafe" : "#fdf4ff",
+                            padding: "1px 3px", background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "var(--bg-alt)" : "var(--bg-alt)",
                             cursor: "pointer",
                           }} onClick={(e) => {
                             e.stopPropagation();
@@ -521,26 +623,25 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                           }}
                             onMouseOver={e => e.currentTarget.style.filter = "brightness(0.95)"}
                             onMouseOut={e => e.currentTarget.style.filter = "none"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              <span style={{
-                                width: 12, height: 12, borderRadius: "50%",
-                                background: "#c084fc", color: "#fff",
-                                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 7, fontWeight: 800,
-                              }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
-                              <span style={{ fontSize: 8, fontWeight: 700, color: "#9333ea" }}>{w.name}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <button onClick={(e) => { e.stopPropagation(); toggleCollapse(cell.dateStr, String(w.id)); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 10, padding: "0 2px" }}>
+                                {collapsedWorkers[`${cell.dateStr}-${w.id}`] ? "▶" : "▼"}
+                              </button>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-main)" }}>{w.name}</span>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                               {monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId && (
                                 <span style={{ fontSize: 10, fontWeight: 900, color: "#2563eb", lineHeight: 1 }}>＋</span>
                               )}
                               {totalH > 0 && (
-                                <span style={{ fontSize: 7, fontWeight: 700, color: "#64748b" }}>{totalH}h</span>
+                                <span style={{ fontSize: 8, fontWeight: 700, color: "var(--text-muted)" }}>{totalH.toFixed(1)}h</span>
                               )}
                             </div>
                           </div>
                           {/* Ticket rows */}
-                          {wt.map(t => {
+                          {!collapsedWorkers[`${cell.dateStr}-${w.id}`] && (
+                            <>
+                              {wt.map(t => {
                             const tc = typeColors[t.type] || typeColors["その他"];
                             const isDragTarget = monthDragOver && monthDragOver.id === t.id;
                             return (
@@ -559,22 +660,34 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                                 }}
                                 onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))} style={{
                                   display: "flex", flexDirection: "column", gap: 2,
-                                  padding: "2px 3px", borderTop: isDragTarget ? "2px solid #2563eb" : `1px solid #e9d5ff`,
-                                  background: tc.bg, cursor: "grab", minHeight: 28,
-                                  fontSize: 8, lineHeight: "1.2", overflow: "hidden",
+                                  padding: "4px 6px", borderTop: isDragTarget ? "2px solid #2563eb" : "1px solid var(--border-light)",
+                                  background: tc.bg, cursor: "grab", minHeight: 40,
+                                  fontSize: 10, lineHeight: "1.2", overflow: "hidden",
+                                  borderRadius: 2, margin: "1px 2px"
                                 }}
                                 onMouseOver={e => e.currentTarget.style.filter = "brightness(0.93)"}
                                 onMouseOut={e => e.currentTarget.style.filter = "none"}>
-                                <div style={{ display: "flex", flexWrap: "wrap", rowGap: 0, columnGap: 4, lineHeight: 1.1 }}>
-                                  <div style={{ fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
-                                  <div style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 700 }}>{t.property}</div>
-                                  {t.timeSlot && <div style={{ color: "#64748b", fontWeight: 800 }}>{t.timeSlot}</div>}
+                                <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-main)", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: 2, marginBottom: 2 }}>
+                                  {w.name}
                                 </div>
-                                <div style={{ display: "flex", gap: 3, fontSize: 7, color: "#475569", marginTop: 1, opacity: 0.9, lineHeight: 1.1 }}>
-                                  {t.time && <span style={{ fontWeight: 700 }}>{t.time}</span>}
-                                  <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.work}</span>
-                                  <span>{t.area}</span>
-                                  <span style={{ color: getPrefColor(t.prefecture), fontWeight: 700 }}>{t.prefecture}</span>
+                                <div style={{ display: "flex", flexWrap: "wrap", rowGap: 2, columnGap: 6, lineHeight: 1.2 }}>
+                                  <div style={{ fontSize: 11, fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
+                                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: "var(--text-main)" }}>{t.property}</div>
+                                  {t.timeSlot && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 800 }}>{t.timeSlot}</div>}
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "var(--text-sub)", marginTop: 2, opacity: 0.9, lineHeight: 1.2 }}>
+                                  <div style={{ color: "var(--text-main)", fontWeight: 800, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, fontSize: 9 }}>
+                                    {t.time && <span style={{ fontWeight: 800, color: "var(--text-main)" }}>{formatExcelTime(t.time)}</span>}
+                                    {typeof t.companion === "string" && (
+                                      <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", gap: 2, background: "rgba(128,128,128,0.15)", padding: "1px 4px", borderRadius: 4 }}>
+                                        <IconPeople size={10} color="var(--text-muted)" />
+                                        <span style={{ fontWeight: 800, fontSize: 10, color: "var(--text-main)" }}>{t.companion.split(/[\s　]+/)[0]}</span>
+                                      </span>
+                                    )}
+                                    <span>{t.area}</span>
+                                    <span style={{ color: getPrefColor(t.prefecture), fontWeight: 800 }}>{t.prefecture}</span>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -597,10 +710,12 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                               }}>
                             </div>
                           )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
 
 
 
@@ -610,7 +725,7 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                       {onVacation.map(({ worker: w }) => (
                         <div key={w.id} style={{
                           display: "flex", alignItems: "center", gap: 2,
-                          padding: "1px", opacity: 0.5, fontSize: 8, cursor: "pointer",
+                          padding: "1px", opacity: 0.5, fontSize: 9, cursor: "pointer",
                         }} onClick={(e) => {
                           e.stopPropagation();
                           if (window.onWorkerMenu) window.onWorkerMenu(e.clientX, e.clientY, String(w.id), w.name, cell.dateStr);
@@ -621,7 +736,7 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
                             width: 10, height: 10, borderRadius: "50%",
                             background: "#94a3b8", color: "#fff",
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 6, fontWeight: 800,
+                            fontSize: 7, fontWeight: 800,
                           }}>{w.id}</span>
                           <span style={{ color: "#94a3b8", textDecoration: "line-through" }}>{w.name}</span>
                           <IconVacation size={9} color="#f59e0b" />
@@ -640,7 +755,7 @@ function MonthCalendar({ tickets, year, month, workers, vacations, onDayClick, o
 }
 
 // --- Daily Detail View ---
-function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onView, onSave, vacations, onToggleVacation, onReorder, onMoveTicket }) {
+function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, onAdd, onView, onSave, vacations, onToggleVacation, onReorder, onMoveTicket, theme }) {
   const dayTickets = tickets.filter(t => t.date === dateStr);
   const d = new Date(dateStr + "T00:00:00");
   const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
@@ -651,7 +766,16 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
   workers.forEach(w => { grouped[String(w.id)] = []; });
   grouped["none"] = [];
   dayTickets.forEach(t => {
-    const k = t.person && grouped[t.person] ? t.person : "none";
+    if (!t.person) { grouped["none"].push(t); return; }
+
+    const targetWorker = workers.find(w =>
+      String(w.id) === t.person ||
+      w.name === t.person ||
+      (w.name && t.person && (w.name.startsWith(t.person) || t.person.startsWith(w.name)))
+    );
+
+    const k = targetWorker ? String(targetWorker.id) : "none";
+    if (!grouped[k]) grouped[k] = []; // fallback
     grouped[k].push(t);
   });
 
@@ -674,26 +798,26 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
 
   const isHolidayAtDay = isHoliday(dateStr);
   const isSundayAtDay = d.getDay() === 0;
-  const dateColorAtDay = (isSundayAtDay || isHolidayAtDay) ? "#ef4444" : (d.getDay() === 6 ? "#2563eb" : "#1e293b");
+  const dateColorAtDay = (isSundayAtDay || isHolidayAtDay) ? "#ef4444" : (d.getDay() === 6 ? "#2563eb" : "var(--text-main)");
 
   return (
     <div style={{ padding: "0 4px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center", gap: 12 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "var(--text-main)", display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ color: dateColorAtDay }}>{d.getMonth() + 1}月{d.getDate()}日（{dow}）{isHolidayAtDay ? ` ${isHolidayAtDay}` : ""}</span>
-          <span style={{ fontSize: 12, fontWeight: 500, background: "#f1f5f9", padding: "2px 8px", borderRadius: 12, color: "#475569" }}>{dayTickets.length}件</span>
+          <span style={{ fontSize: 13, fontWeight: 500, background: "var(--bg-alt)", padding: "2px 8px", borderRadius: 12, color: "var(--text-sub)" }}>{dayTickets.length}件</span>
         </h2>
-        <button onClick={() => onAdd(dateStr)} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>＋ 追加</button>
+        <button onClick={() => onAdd(dateStr)} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>＋ 追加</button>
       </div>
 
       {/* Vacation header */}
       {vacWorkers.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", marginBottom: 6, background: "#fef9c3", borderRadius: 4, border: "1px solid #fde047" }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#854d0e" }}>🌴 休暇:</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", marginBottom: 6, background: "rgba(234, 179, 8, 0.15)", borderRadius: 4, border: "1px solid #eab308" }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#eab308" }}>🌴 休暇:</span>
           {vacWorkers.map(w => (
-            <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-              <span style={{ width: 18, height: 18, borderRadius: "50%", background: "#94a3b8", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
-              <span style={{ color: "#94a3b8", fontWeight: 600 }}>{w.name}</span>
+            <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12 }}>
+              <UserAvatar user={w} size={22} style={{ background: "var(--text-muted)" }} />
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>{w.name}</span>
             </span>
           ))}
         </div>
@@ -701,22 +825,22 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
 
       {/* Move ticket modal */}
       {moveTicket && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setMoveTicket(null)}>
-          <div style={{ background: "#fff", borderRadius: 8, padding: 20, width: 300, boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700 }}>チケットを移動</h3>
-            <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 12px" }}>{moveTicket.type} / {moveTicket.property}</p>
+        <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setMoveTicket(null)}>
+          <div style={{ background: "var(--bg-app)", borderRadius: 8, padding: 20, width: 300, boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>チケットを移動</h3>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 12px" }}>{moveTicket.type} / {moveTicket.property}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {workers.filter(w => String(w.id) !== moveTicket.person).map(w => (
+              {(allWorkers || workers).filter(w => String(w.id) !== moveTicket.person).map(w => (
                 <button key={w.id} onClick={() => { onMoveTicket && onMoveTicket(moveTicket.id, String(w.id)); setMoveTicket(null); }}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", border: "1px solid #e2e8f0", borderRadius: 4, background: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", border: "1px solid var(--border-color)", borderRadius: 4, background: "var(--bg-app)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
                   onMouseOver={e => e.currentTarget.style.background = `${w.color}15`}
-                  onMouseOut={e => e.currentTarget.style.background = "#fff"}>
-                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
+                  onMouseOut={e => e.currentTarget.style.background = "var(--bg-app)"}>
+                  <UserAvatar user={w} size={20} />
                   <span style={{ color: w.color }}>{w.name}</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => setMoveTicket(null)} style={{ marginTop: 12, width: "100%", padding: "6px", border: "1px solid #d1d5db", borderRadius: 4, background: "#f8fafc", cursor: "pointer", fontSize: 11 }}>キャンセル</button>
+            <button onClick={() => setMoveTicket(null)} style={{ marginTop: 12, width: "100%", padding: "6px", border: "1px solid var(--border-color)", borderRadius: 4, background: "var(--bg-alt)", color: "var(--text-main)", cursor: "pointer", fontSize: 12 }}>キャンセル</button>
           </div>
         </div>
       )}
@@ -734,22 +858,26 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
 
         return (
           <div key={w.id} style={{
-            marginBottom: 4, border: isUnassignedRow ? "1px dashed #f87171" : "1px solid #e2e8f0",
+            marginBottom: 4, border: isUnassignedRow ? "1px dashed var(--color-danger-dark)" : "1px solid var(--border-color)",
             borderRadius: 4,
             display: "flex", overflow: "hidden",
             opacity: 1,
           }}>
-            <div style={{ width: 5, background: isUnassignedRow ? "#f87171" : (isVac ? "#94a3b8" : w.color), flexShrink: 0 }} />
-            <div style={{ flex: 1, background: isUnassignedRow ? "#fef2f2" : "#fff", overflow: "hidden" }}>
+            <div style={{ width: 5, background: isUnassignedRow ? "var(--color-danger-dark)" : (isVac ? "var(--text-muted)" : w.color), flexShrink: 0 }} />
+            <div style={{ flex: 1, background: isUnassignedRow ? "var(--bg-body)" : "var(--bg-app)", overflow: "hidden" }}>
               <div style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "5px 10px",
-                background: isUnassignedRow ? "#fee2e2" : (isVac ? "#fefce8" : wt.length > 0 ? `${w.color}08` : "#fafbfc"),
-                borderBottom: wt.length > 0 ? "1px solid #e5e7eb" : "none",
+                background: isUnassignedRow ? "rgba(239, 68, 68, 0.1)" : (isVac ? "rgba(234, 179, 8, 0.05)" : wt.length > 0 ? `${w.color}15` : "var(--bg-alt)"),
+                borderBottom: wt.length > 0 ? "1px solid var(--border-light)" : "none",
               }}>
-                <span style={{ width: 24, height: 24, borderRadius: "50%", background: isUnassignedRow ? "#f87171" : (isVac ? "#cbd5e1" : w.color), color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800 }}>{isUnassignedRow ? "？" : (typeof w.id === "string" ? w.name?.charAt(0) : w.id)}</span>
-                <span style={{ fontWeight: 700, fontSize: 12, color: isUnassignedRow ? "#ef4444" : (isVac ? "#94a3b8" : w.color) }}>{isUnassignedRow ? "未定 (Unassigned)" : w.name}</span>
-                {isVac && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 3, background: "#fef3c7", color: "#92400e", fontWeight: 700 }}>🌴 休暇</span>}
-                {!isVac && <span style={{ fontSize: 10, color: "#94a3b8" }}>{wt.length}件</span>}
+                <UserAvatar 
+                  user={isUnassignedRow ? { name: "？", color: "var(--color-danger-dark)" } : w} 
+                  size={28} 
+                  style={{ color: "var(--bg-app)" }}
+                />
+                <span style={{ fontWeight: 700, fontSize: 13, color: isUnassignedRow ? "var(--color-danger-dark)" : (isVac ? "var(--text-muted)" : (theme === "dark" ? "var(--text-main)" : w.color)) }}>{isUnassignedRow ? "未定 (Unassigned)" : w.name}</span>
+                {isVac && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 3, background: "var(--color-warning-light)", color: "var(--color-warning-dark)", fontWeight: 700 }}>🌴 休暇</span>}
+                {!isVac && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{wt.length}件</span>}
                 <div style={{ flex: 1 }} />
                 {!isUnassignedRow && (
                   <button onClick={() => {
@@ -758,21 +886,21 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                     }
                     onToggleVacation && onToggleVacation(dateStr, w.id);
                   }} style={{
-                    padding: "4px 12px", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 700,
-                    border: isVac ? "2px solid #eab308" : "1px solid #e2e8f0",
-                    background: isVac ? "#fef08a" : "#fff",
-                    color: isVac ? "#854d0e" : "#475569",
+                    padding: "4px 12px", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 700,
+                    border: isVac ? "2px solid #eab308" : "1px solid var(--border-color)",
+                    background: isVac ? "#fef08a" : "var(--bg-app)",
+                    color: isVac ? "#854d0e" : "var(--text-sub)",
                     transition: "all 0.15s ease",
                   }}
-                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "#f1f5f9"; e.currentTarget.style.transform = "scale(1.05)"; }}
-                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "#fef08a" : "#fff"; e.currentTarget.style.transform = "scale(1)"; }}
-                  >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="#64748b" /> 休暇</>}</button>
+                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "var(--bg-alt)"; e.currentTarget.style.transform = "scale(1.05)"; }}
+                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "#fef08a" : "var(--bg-app)"; e.currentTarget.style.transform = "scale(1)"; }}
+                  >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="var(--text-muted)" /> 休暇</>}</button>
                 )}
-                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 3, cursor: "pointer", color: "#64748b", fontSize: 9, padding: "2px 8px", fontWeight: 600 }}>＋</button>
+                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "none", border: "1px solid var(--border-color)", borderRadius: 3, cursor: "pointer", color: "var(--text-muted)", fontSize: 10, padding: "2px 8px", fontWeight: 600 }}>＋</button>
               </div>
               {wt.length > 0 && (
                 <div style={{ overflowX: "auto", overflowY: "visible" }}>
-                  <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 11, tableLayout: "fixed" }}>
+                  <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 12, tableLayout: "fixed" }}>
                     <colgroup>
                       <col style={{ width: 22 }} />
                       {currentCols.map(c => (
@@ -782,11 +910,11 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                     </colgroup>
                     <thead>
                       <tr>
-                        <th style={{ width: 22, background: "#f8fafc", borderBottom: "1px solid #e5e7eb", position: "sticky", left: 0, zIndex: 11 }} />
+                        <th style={{ width: 22, background: "var(--bg-alt)", borderBottom: "1px solid var(--border-light)", position: "sticky", left: 0, zIndex: 11 }} />
                         {currentCols.map(c => (
-                          <th key={c.key} style={{ padding: "3px 4px", fontSize: 9, fontWeight: 700, color: "#64748b", textAlign: "left", borderBottom: "1px solid #e5e7eb", whiteSpace: "nowrap", background: "#f8fafc", width: c.w, overflow: "hidden", textOverflow: "ellipsis" }}>{c.label}</th>
+                          <th key={c.key} style={{ padding: "3px 4px", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "left", borderBottom: "1px solid var(--border-light)", whiteSpace: "nowrap", background: "var(--bg-alt)", width: c.w, overflow: "hidden", textOverflow: "ellipsis" }}>{c.label}</th>
                         ))}
-                        <th style={{ width: 90, position: "sticky", right: 0, background: "#f8fafc", borderBottom: "1px solid #e5e7eb", fontSize: 9, fontWeight: 700, color: "#64748b", padding: "3px 4px", zIndex: 12, textAlign: "center", boxShadow: "-2px 0 4px rgba(0,0,0,0.02)" }}>操作</th>
+                        <th style={{ width: 100, position: "sticky", right: 0, background: "var(--bg-alt)", borderBottom: "1px solid var(--border-light)", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", padding: "3px 4px", zIndex: 12, textAlign: "center", boxShadow: "-2px 0 4px rgba(0,0,0,0.02)" }}>操作</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -817,14 +945,14 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                             onMouseOver={e => { if (!isDone) e.currentTarget.style.filter = "brightness(0.97)"; }}
                             onMouseOut={e => e.currentTarget.style.filter = "none"}>
                             {/* Grip handle */}
-                            <td style={{ width: 22, textAlign: "center", cursor: "grab", verticalAlign: "middle", borderBottom: "1px solid #f1f5f9" }}>
-                              <IconGrip size={12} />
+                            <td style={{ width: 22, textAlign: "center", cursor: "grab", verticalAlign: "middle", borderBottom: "1px solid var(--border-light)" }}>
+                              <IconGrip size={12} color="var(--text-muted)" />
                             </td>
                             {currentCols.map(c => {
-                              let bg = "transparent", clr = isDone ? "#1e293b" : "#1e293b";
+                              let bg = "transparent", clr = "var(--text-main)";
                               if (c.key === "type" && !isDone) { bg = tc.badge; clr = tc.text; }
                               if (c.key === "result" && t.result && !isDone) bg = resultColors[t.result] || "transparent";
-                              if (c.key === "result" && isDone) { bg = "#d1d5db"; clr = "#1e293b"; }
+                              if (c.key === "result" && isDone) { bg = "var(--border-color)"; clr = "var(--text-muted)"; }
                               if (c.key === "faultLevel" && t.faultLevel) { bg = FAULT_LEVEL_COLORS[t.faultLevel] || "transparent"; clr = "#fff"; }
                               const isWork = c.key === "work";
                               const isEditing = editingCell && editingCell.id === t.id && editingCell.key === c.key;
@@ -837,9 +965,8 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                                 width: c.w,
                                 height: 48,
                                 verticalAlign: "middle",
-                                lineHeight: isWork ? "14px" : "normal",
-                                borderBottom: "1px solid #f1f5f9",
-                                background: isDone ? "#cbd5e1" : (t.result === "キャンセル" ? "#fca5a5" : (bg !== "transparent" ? bg : "transparent")),
+                                borderBottom: "1px solid var(--border-light)",
+                                background: isDone ? "var(--bg-body)" : (t.result === "キャンセル" ? "rgba(239, 68, 68, 0.2)" : (bg !== "transparent" ? bg : "transparent")),
                                 color: clr,
                                 fontWeight: c.key === "type" || c.key === "property" ? 700 : 500,
                                 cursor: c.type === "auto" ? "default" : "text",
@@ -847,7 +974,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
 
                               // Inline editing
                               if (isEditing && c.type !== "auto" && c.key !== "result") {
-                                const inputStyle = { width: "100%", padding: "2px 3px", border: "1px solid #2563eb", borderRadius: 2, fontSize: 11, boxSizing: "border-box", background: "#fff", outline: "none", boxShadow: "0 0 0 2px rgba(37,99,235,0.2)" };
+                                const inputStyle = { width: "100%", padding: "2px 3px", border: "1px solid #2563eb", borderRadius: 2, fontSize: 12, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)", outline: "none", boxShadow: "0 0 0 2px rgba(37,99,235,0.2)" };
                                 const save = (val) => {
                                   let updates = { [c.key]: val };
                                   if (c.key === "faultCategory") updates.faultLevel = FAULT_LEVEL_MAP[val] || "";
@@ -895,11 +1022,23 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                                   onMouseOver={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = "#f8fafc"; }}
                                   onMouseOut={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = cellStyle.background; }}
                                   onClick={e => { e.stopPropagation(); if (c.type !== "auto" && c.key !== "result") setEditingCell({ id: t.id, key: c.key }); }}>
-                                  {t[c.key] || ""}
+                                  {c.key === "work" ? (
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                                      <span style={{ flex: 1, fontWeight: 800, fontSize: 13, color: "var(--text-main)", wordBreak: "break-word" }}>{t[c.key] || ""}</span>
+                                      {typeof t.companion === "string" && (
+                                        <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", gap: 3, background: "rgba(128,128,128,0.15)", padding: "2px 6px", borderRadius: 4 }}>
+                                          <IconPeople size={11} color="var(--text-muted)" />
+                                          <span style={{ fontWeight: 700, fontSize: 12, color: "var(--text-sub)" }}>{t.companion.split(/[\s　]+/)[0]}</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    c.key === "time" ? formatExcelTime(t[c.key]) : (t[c.key] || "")
+                                  )}
                                 </td>
                               );
                             })}
-                            <td style={{ position: "sticky", right: 0, zIndex: 10, background: isDone ? "#f8fafc" : "#fff", padding: "4px", borderBottom: "1px solid #f1f5f9", width: 90, height: 48, verticalAlign: "middle", boxShadow: "-2px 0 4px rgba(0,0,0,0.05)" }}>
+                            <td style={{ position: "sticky", right: 0, zIndex: 10, background: isDone ? "var(--bg-alt)" : "var(--bg-app)", padding: "4px", borderBottom: "1px solid var(--border-light)", width: 90, height: 48, verticalAlign: "middle", boxShadow: "-2px 0 4px rgba(0,0,0,0.05)" }}>
                               <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
                                   {!isDone ? (
@@ -922,15 +1061,15 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
                                   </button>
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                                  <button onClick={e => { e.stopPropagation(); onEdit(t); }} title="詳細編集" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 3, border: "1px solid #cbd5e1", background: "#f8fafc", cursor: "pointer", transition: "background 0.15s" }}
-                                    onMouseOver={e => e.currentTarget.style.background = "#e2e8f0"}
-                                    onMouseOut={e => e.currentTarget.style.background = "#f8fafc"}>
-                                    <IconEdit size={12} color="#475569" />
+                                  <button onClick={e => { e.stopPropagation(); onEdit(t); }} title="詳細編集" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-alt)", cursor: "pointer", transition: "background 0.15s" }}
+                                    onMouseOver={e => e.currentTarget.style.background = "var(--calendar-cell-border)"}
+                                    onMouseOut={e => e.currentTarget.style.background = "var(--bg-alt)"}>
+                                    <IconEdit size={12} color="var(--text-sub)" />
                                   </button>
-                                  <button onClick={e => { e.stopPropagation(); setMoveTicket(t); }} title="移動" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 3, border: "1px solid #cbd5e1", background: "#f8fafc", cursor: "pointer", transition: "background 0.15s" }}
-                                    onMouseOver={e => e.currentTarget.style.background = "#e2e8f0"}
-                                    onMouseOut={e => e.currentTarget.style.background = "#f8fafc"}>
-                                    <IconTransfer size={12} color="#64748b" />
+                                  <button onClick={e => { e.stopPropagation(); setMoveTicket(t); }} title="移動" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-alt)", cursor: "pointer", transition: "background 0.15s" }}
+                                    onMouseOver={e => e.currentTarget.style.background = "var(--calendar-cell-border)"}
+                                    onMouseOut={e => e.currentTarget.style.background = "var(--bg-alt)"}>
+                                    <IconTransfer size={12} color="var(--text-muted)" />
                                   </button>
                                   <button onClick={e => { e.stopPropagation(); onDelete(t.id); }} title="削除" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 3, border: "1px solid #fca5a5", background: "#fee2e2", cursor: "pointer", transition: "background 0.15s" }}
                                     onMouseOver={e => e.currentTarget.style.background = "#fecaca"}
@@ -971,7 +1110,7 @@ function DailyDetail({ tickets, dateStr, workers, onEdit, onDelete, onAdd, onVie
 }
 
 // --- Processing Pool ---
-function ProcessingPool({ tickets, workers, onEdit, onDelete, onAssign }) {
+function ProcessingPool({ tickets, workers, allWorkers, onEdit, onDelete, onAssign }) {
   const poolTickets = tickets.filter(t => !t.date);
   const [search, setSearch] = useState("");
   const [assignTicket, setAssignTicket] = useState(null);
@@ -988,46 +1127,46 @@ function ProcessingPool({ tickets, workers, onEdit, onDelete, onAssign }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <IconPool size={20} color="#1e40af" />
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1e293b" }}>Processing Pool</h2>
-          <span style={{ fontSize: 12, fontWeight: 500, color: "#64748b" }}>{poolTickets.length}件</span>
+          <IconPool size={20} color="#3b82f6" />
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "var(--text-main)" }}>Processing Pool</h2>
+          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)" }}>{poolTickets.length}件</span>
         </div>
-        <button onClick={() => { const t = emptyTicket(); t.date = ""; onEdit(t); }} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={() => { const t = emptyTicket(); t.date = ""; onEdit(t); }} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
           <IconPlus size={12} color="#fff" /> 新規追加
         </button>
       </div>
 
       {/* Search */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
-        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, padding: "8px 12px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
+        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         <input type="text" placeholder="依頼番号・号機・物件名で検索..." value={search} onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, border: "none", background: "transparent", fontSize: 12, outline: "none" }} />
-        {search && <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 14 }}>×</button>}
+          style={{ flex: 1, border: "none", background: "transparent", fontSize: 12, outline: "none", color: "var(--text-main)" }} />
+        {search && <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 14 }}>×</button>}
       </div>
 
       {/* Assign modal */}
       {assignTicket && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setAssignTicket(null)}>
-          <div style={{ background: "#fff", borderRadius: 8, padding: 24, width: 340, boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-              <IconCalendar size={16} color="#1e40af" /> スケジュールに配置
+        <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setAssignTicket(null)}>
+          <div style={{ background: "var(--bg-app)", borderRadius: 8, padding: 24, width: 340, boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, color: "var(--text-main)" }}>
+              <IconCalendar size={16} color="#3b82f6" /> スケジュールに配置
             </h3>
-            <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 14px" }}>{assignTicket.type} / {assignTicket.property}</p>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 14px" }}>{assignTicket.type} / {assignTicket.property}</p>
             <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>日付</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 3 }}>日付</label>
               <input type="date" value={assignDate} onChange={e => setAssignDate(e.target.value)}
-                style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 12, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" }} />
             </div>
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>対応者（任意）</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 3 }}>対応者（任意）</label>
               <select value={assignWorker} onChange={e => setAssignWorker(e.target.value)}
-                style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12 }}>
+                style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 12, background: "var(--bg-input)", color: "var(--text-main)" }}>
                 <option value="">未定</option>
-                {workers.map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
+                {(allWorkers || workers).map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
               </select>
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button onClick={() => setAssignTicket(null)} style={{ padding: "6px 14px", borderRadius: 4, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, cursor: "pointer" }}>キャンセル</button>
+              <button onClick={() => setAssignTicket(null)} style={{ padding: "6px 14px", borderRadius: 4, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>キャンセル</button>
               <button onClick={() => {
                 if (!assignDate) return;
                 onAssign(assignTicket.id, assignDate, assignWorker);
@@ -1040,31 +1179,31 @@ function ProcessingPool({ tickets, workers, onEdit, onDelete, onAssign }) {
 
       {/* Pool cards */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
-          <IconPool size={40} color="#cbd5e1" />
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+          <IconPool size={40} color="var(--border-color)" />
           <p style={{ fontSize: 13, marginTop: 10 }}>{search ? "検索結果がありません" : "Poolにチケットはありません"}</p>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
           {filtered.map(t => {
             const tc = typeColors[t.type] || typeColors["その他"];
-            const w = workers.find(x => String(x.id) === t.person);
+            const w = workers.find(x => String(x.id) === t.person || x.name === t.person);
             return (
-              <div key={t.id} style={{ border: "1px solid #e2e8f0", borderRadius: 6, background: "#fff", overflow: "hidden", display: "flex" }}>
+              <div key={t.id} style={{ border: "1px solid var(--border-color)", borderRadius: 6, background: "var(--bg-app)", overflow: "hidden", display: "flex", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
                 <div style={{ width: 4, background: tc.badge, flexShrink: 0 }} />
                 <div style={{ flex: 1, padding: "8px 12px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 3, background: tc.bg, color: tc.text, fontWeight: 700 }}>{t.type}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.property || "未設定"}</span>
+                    <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 3, background: tc.bg, color: tc.text, fontWeight: 700 }}>{t.type}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-main)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.property || "未設定"}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#64748b", marginBottom: 6 }}>
-                    {t.requestNo && <span style={{ background: "#f1f5f9", padding: "1px 5px", borderRadius: 2 }}>{t.requestNo}</span>}
+                  <div style={{ fontSize: 11, color: "var(--text-main)", fontWeight: 800, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.2 }}>{t.work}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>
+                    {t.requestNo && <span style={{ background: "var(--bg-alt)", padding: "1px 5px", borderRadius: 2 }}>{t.requestNo}</span>}
                     {t.unit && <span>号機:{t.unit}</span>}
-                    {t.work && <span>{t.work}</span>}
                     {w && <span style={{ color: w.color, fontWeight: 600 }}>{w.name}</span>}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <button onClick={() => { setAssignTicket(t); setAssignDate(""); setAssignWorker(t.person || ""); }} title="配置" style={{ display: "flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 4, border: "1px solid #2563eb", background: "#eff6ff", color: "#2563eb", fontSize: 10, fontWeight: 700, cursor: "pointer", transition: "background 0.15s" }}
+                    <button onClick={() => { setAssignTicket(t); setAssignDate(""); setAssignWorker(t.person || ""); }} title="配置" style={{ display: "flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 4, border: "1px solid #2563eb", background: "#eff6ff", color: "#2563eb", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "background 0.15s" }}
                       onMouseOver={e => e.currentTarget.style.background = "#dbeafe"}
                       onMouseOut={e => e.currentTarget.style.background = "#eff6ff"}>
                       <IconCalendar size={11} color="#2563eb" /> 配置
@@ -1091,46 +1230,46 @@ function ProcessingPool({ tickets, workers, onEdit, onDelete, onAssign }) {
 }
 
 // --- Detail Modal (read-only) ---
-function TicketDetailModal({ ticket, workers, onClose, onEdit, onDelete }) {
+function TicketDetailModal({ ticket, workers, perms, onClose, onEdit, onDelete }) {
   const tc = typeColors[ticket.type] || typeColors["その他"];
   const w = workers.find(x => String(x.id) === ticket.person);
   const d = new Date(ticket.date + "T00:00:00");
   const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-  const labelStyle = { fontSize: 10, fontWeight: 700, color: "#64748b", marginBottom: 2 };
-  const valStyle = { fontSize: 13, fontWeight: 500, color: "#1e293b", minHeight: 20, padding: "4px 8px", background: "#f8fafc", borderRadius: 4, wordBreak: "break-all" };
+  const labelStyle = { fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 2 };
+  const valStyle = { fontSize: 14, fontWeight: 500, color: "var(--text-main)", minHeight: 20, padding: "4px 8px", background: "var(--bg-alt)", borderRadius: 4, wordBreak: "break-all" };
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 10, padding: 0, width: 620, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
+      <div style={{ background: "var(--bg-app)", borderRadius: 10, padding: 0, width: 620, maxHeight: "85vh", overflowY: "auto", boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ background: tc.bg, borderRadius: "10px 10px 0 0", padding: "16px 22px", borderBottom: `3px solid ${tc.badge}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: tc.text, padding: "3px 12px", background: tc.badge, borderRadius: 4 }}>{ticket.type || "未設定"}</span>
-            <span style={{ fontSize: 16, fontWeight: 800, color: "#1e293b" }}>{ticket.property || "物件名なし"}</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: tc.text, padding: "3px 12px", background: tc.badge, borderRadius: 4 }}>{ticket.type || "未設定"}</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: tc.text }}>{ticket.property || "物件名なし"}</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#94a3b8", lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: tc.text, opacity: 0.7, lineHeight: 1 }}>✕</button>
         </div>
 
         <div style={{ padding: "18px 22px" }}>
           {/* Date + Worker */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, padding: "10px 14px", background: "#f1f5f9", borderRadius: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, padding: "10px 14px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-light)" }}>
             <div>
-              <div style={labelStyle}><IconCalendar size={10} color="#64748b" /> 日付</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>{d.getFullYear()}年{d.getMonth() + 1}月{d.getDate()}日（{dow}）</div>
+              <div style={labelStyle}><IconCalendar size={10} color="var(--text-muted)" /> 日付</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{d.getFullYear()}年{d.getMonth() + 1}月{d.getDate()}日（{dow}）</div>
             </div>
-            <div style={{ width: 1, height: 32, background: "#d1d5db" }} />
+            <div style={{ width: 1, height: 32, background: "var(--border-color)" }} />
             <div>
-              <div style={labelStyle}><IconPerson size={10} color="#64748b" /> 対応者</div>
+              <div style={labelStyle}><IconPerson size={10} color="var(--text-muted)" /> 対応者</div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                {w && <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>}
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>{w ? w.name : "未割当"}</span>
+                {w && <UserAvatar user={w} size={26} />}
+                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{w ? w.name : (ticket.person || "未割当")}</span>
               </div>
             </div>
             {ticket.result && (
               <>
-                <div style={{ width: 1, height: 32, background: "#d1d5db" }} />
+                <div style={{ width: 1, height: 32, background: "var(--border-color)" }} />
                 <div>
-                  <div style={labelStyle}><IconClipboard size={10} color="#64748b" /> 結果</div>
-                  <span style={{ padding: "3px 10px", borderRadius: 4, fontSize: 12, fontWeight: 700, background: resultColors[ticket.result] || "#e2e8f0", color: "#1e293b" }}>{ticket.result}</span>
+                  <div style={labelStyle}><IconClipboard size={10} color="var(--text-muted)" /> 結果</div>
+                  <span style={{ padding: "3px 10px", borderRadius: 4, fontSize: 13, fontWeight: 700, background: resultColors[ticket.result] || "var(--bg-alt)", border: "1px solid var(--border-light)", color: "var(--text-main)" }}>{ticket.result}</span>
                 </div>
               </>
             )}
@@ -1142,7 +1281,7 @@ function TicketDetailModal({ ticket, workers, onClose, onEdit, onDelete }) {
               { label: "BOX", val: ticket.box },
               { label: "号機", val: ticket.unit },
               { label: "種別", val: ticket.category },
-              { label: "時間指定", val: ticket.time },
+              { label: "時間指定", val: formatExcelTime(ticket.time) },
               { label: "エリア", val: ticket.area },
               { label: "県別", val: ticket.prefecture },
               { label: "移動", val: ticket.travel },
@@ -1160,22 +1299,26 @@ function TicketDetailModal({ ticket, workers, onClose, onEdit, onDelete }) {
 
           {/* Work content (full width) */}
           <div style={{ marginBottom: 16 }}>
-            <div style={labelStyle}><IconWrench size={10} color="#64748b" /> 作業内容</div>
-            <div style={{ ...valStyle, fontSize: 14, minHeight: 48, lineHeight: "22px", whiteSpace: "pre-wrap" }}>{ticket.work || "—"}</div>
+            <div style={labelStyle}><IconWrench size={10} color="var(--text-muted)" /> 作業内容</div>
+            <div style={{ ...valStyle, fontSize: 15, minHeight: 48, lineHeight: "22px", whiteSpace: "pre-wrap" }}>{ticket.work || "—"}</div>
           </div>
 
           {/* Notes */}
           {ticket.notes && (
             <div style={{ marginBottom: 16 }}>
-              <div style={labelStyle}><IconNote size={10} color="#64748b" /> 備考</div>
+              <div style={labelStyle}><IconNote size={10} color="var(--text-muted)" /> 備考</div>
               <div style={{ ...valStyle, minHeight: 32, lineHeight: "20px", whiteSpace: "pre-wrap" }}>{ticket.notes}</div>
             </div>
           )}
 
           {/* Actions */}
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 14, borderTop: "1px solid #e5e7eb" }}>
-            <button onClick={() => { onClose(); onDelete(ticket.id); }} style={{ padding: "7px 16px", borderRadius: 4, border: "1px solid #fca5a5", background: "#fff", color: "#dc2626", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconTrash size={13} color="#dc2626" /> 削除</button>
-            <button onClick={() => { onClose(); onEdit(ticket); }} style={{ padding: "7px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconEdit size={13} color="#fff" /> 編集</button>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 14, borderTop: "1px solid var(--border-color)" }}>
+            {perms?.canDeleteTicket(ticket) && (
+              <button onClick={() => { if (window.confirm("本当に削除しますか？")) { onClose(); onDelete(ticket.id); } }} style={{ padding: "7px 16px", borderRadius: 4, border: "1px solid #fca5a5", background: "var(--bg-app)", color: "#dc2626", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconTrash size={13} color="#dc2626" /> 削除</button>
+            )}
+            {perms?.canEditTicket(ticket) && (
+              <button onClick={() => { onClose(); onEdit(ticket); }} style={{ padding: "7px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconEdit size={13} color="#fff" /> 編集</button>
+            )}
           </div>
         </div>
       </div>
@@ -1184,7 +1327,7 @@ function TicketDetailModal({ ticket, workers, onClose, onEdit, onDelete }) {
 }
 
 // --- Form Modal ---
-function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
+function TicketFormModal({ ticket, perms, onSave, onClose, isNew, workers }) {
   const [form, setForm] = useState({ ...ticket });
   const set = (k, v) => {
     if (k === "faultCategory") {
@@ -1229,31 +1372,33 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
     }, 500);
     return () => clearTimeout(timer);
   }, [form.unit]);
-  const iStyle = { width: "100%", padding: "5px 7px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11, boxSizing: "border-box", background: "#fff" };
+  const iStyle = { width: "100%", padding: "5px 7px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 12, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" };
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 8, padding: 22, width: 640, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
+      <div style={{ background: "var(--bg-app)", borderRadius: 8, padding: 22, width: 640, maxHeight: "85vh", overflowY: "auto", boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1e293b" }}>{isNew ? "新規チケット" : "チケット編集"}</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94a3b8" }}>✕</button>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "var(--text-main)" }}>{isNew ? "新規チケット" : "チケット編集"}</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text-muted)" }}>✕</button>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 10, fontWeight: 600, color: "#64748b" }}>日付</label>
-          <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ ...iStyle, fontSize: 12 }} />
+          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>日付</label>
+          <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ ...iStyle, fontSize: 13 }} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px 10px" }}>
-          {ALL_COLS.map(c => (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px 10px", marginBottom: 12 }}>
+          {ALL_COLS.filter(c => c.key !== "notes" && c.key !== "work").map(c => (
             <div key={c.key}>
-              <label style={{ fontSize: 10, fontWeight: 600, color: c.key === "faultLevel" && form.faultLevel ? FAULT_LEVEL_COLORS[form.faultLevel] : "#64748b" }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: c.key === "faultLevel" && form.faultLevel ? FAULT_LEVEL_COLORS[form.faultLevel] : "var(--text-muted)" }}>
                 {c.label}{c.key === "faultLevel" && form.faultLevel ? ` (${form.faultLevel})` : ""}
               </label>
               {c.key === "person" || c.key === "companion" ? (
                 <select value={form[c.key]} onChange={e => set(c.key, e.target.value)} style={iStyle}>
                   <option value="">—</option>
-                  {workers.map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
+                  {workers
+                    .filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))
+                    .map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
                 </select>
               ) : c.key === "faultLevel" ? (
-                <input type="text" value={form.faultLevel || ""} readOnly style={{ ...iStyle, background: form.faultLevel ? (FAULT_LEVEL_COLORS[form.faultLevel] || "#f1f5f9") : "#f9fafb", color: form.faultLevel ? "#fff" : "#94a3b8", fontWeight: 700, textAlign: "center" }} />
+                <input type="text" value={form.faultLevel || ""} readOnly style={{ ...iStyle, background: form.faultLevel ? (FAULT_LEVEL_COLORS[form.faultLevel] || "var(--bg-alt)") : "var(--bg-alt)", color: form.faultLevel ? "#fff" : "var(--text-muted)", fontWeight: 700, textAlign: "center" }} />
               ) : c.type === "date" ? (
                 <input type="date" value={form[c.key] || ""} onChange={e => set(c.key, e.target.value)} style={iStyle} />
               ) : c.type === "select" ? (
@@ -1285,20 +1430,31 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18, paddingTop: 12, borderTop: "1px solid #e5e7eb" }}>
-          <button onClick={onClose} style={{ padding: "6px 16px", borderRadius: 4, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>キャンセル</button>
-          <button onClick={() => {
-            // 保存前の最終バリデーション
-            if (form.unit && !/^\d{1,9}$/.test(form.unit.trim())) {
-              alert("号機は半角数字1桁〜9桁で入力してください。");
-              return;
-            }
-            if (form.requestNo && form.requestNo.trim() !== "" && !/^\d{11}$/.test(form.requestNo.trim())) {
-              alert("依頼番号は半角数字11桁固定で入力してください。");
-              return;
-            }
-            onSave(form);
-          }} style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>保存</button>
+
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>作業内容</label>
+          <textarea value={form.work || ""} onChange={e => set("work", e.target.value)} style={{ ...iStyle, height: 60, resize: "none" }} />
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>備考</label>
+          <textarea value={form.notes || ""} onChange={e => set("notes", e.target.value)} style={{ ...iStyle, height: 60, resize: "none" }} />
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18, paddingTop: 12, borderTop: "1px solid var(--border-color)" }}>
+          <button onClick={onClose} style={{ padding: "6px 16px", borderRadius: 4, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>キャンセル</button>
+          {perms?.canEditTicket(form) && (
+            <button onClick={() => {
+              // 保存前の最終バリデーション
+              if (form.unit && !/^\d{1,9}$/.test(form.unit.trim())) {
+                alert("号機は半角数字1桁〜9桁で入力してください。");
+                return;
+              }
+              if (form.requestNo && form.requestNo.trim() !== "" && !/^\d{11}$/.test(form.requestNo.trim())) {
+                alert("依頼番号は半角数字11桁固定で入力してください。");
+                return;
+              }
+              onSave(form);
+            }} style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>保存</button>
+          )}
         </div>
       </div>
     </div>
@@ -1306,7 +1462,7 @@ function TicketFormModal({ ticket, onSave, onClose, isNew, workers }) {
 }
 
 // --- Admin Modal (Type & Worker master + sche_role) ---
-function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
+function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose }) {
   const [tab, setTab] = useState("types");
 
   // Type master state
@@ -1315,7 +1471,7 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const [selectedPreset, setSelectedPreset] = useState(0);
 
   // Worker master state
-  const [workerList, setWorkerList] = useState(workers.map(w => ({ ...w, sche_role: w.sche_role || "worker" })));
+  const [workerList, setWorkerList] = useState(workers.map(w => ({ ...w, sche_role: w.sche_role || "view" })));
   const [newWorkerEmail, setNewWorkerEmail] = useState("");
   const [emailSearchResult, setEmailSearchResult] = useState(null);
   const [emailSearching, setEmailSearching] = useState(false);
@@ -1333,9 +1489,21 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const [eqAdding, setEqAdding] = useState(false);
   const [eqMsg, setEqMsg] = useState(null);
 
-  const SCHE_ROLES = ["admin", "worker", "viewer"];
-  const SCHE_ROLE_LABELS = { admin: "管理者", worker: "対応者", viewer: "閲覧者" };
-  const SCHE_ROLE_COLORS = { admin: "#dc2626", worker: "#2563eb", viewer: "#64748b" };
+  const SCHE_ROLES = ["admin", "dispatcher", "field_engineer", "editor", "view"];
+  const SCHE_ROLE_LABELS = { 
+    admin: "管理者 (Admin)", 
+    dispatcher: "配車担当 (Dispatcher)", 
+    field_engineer: "案件担当 (FE)", 
+    editor: "編集専従 (Editor)", 
+    view: "閲覧者 (View)" 
+  };
+  const SCHE_ROLE_COLORS = { 
+    admin: "#dc2626", 
+    dispatcher: "#ea580c", 
+    field_engineer: "#2563eb", 
+    editor: "#9333ea", 
+    view: "#64748b" 
+  };
 
   const addType = () => {
     if (editingTypeIdx !== null) {
@@ -1361,7 +1529,7 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
     setEmailSearchResult(null);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, email, display_name")
+      .select("id, email, display_name, sche_role, avatar_url, avatar_url2")
       .eq("email", newWorkerEmail.trim())
       .maybeSingle();
     setEmailSearching(false);
@@ -1380,14 +1548,19 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   const addWorkerFromProfile = async () => {
     if (!emailSearchResult || !emailSearchResult.found) return;
     const profile = emailSearchResult.profile;
-    // Supabase の sche_role を worker に設定
-    await supabase.from("profiles").update({ sche_role: "worker" }).eq("id", profile.id);
+    // 新規追加時のデフォルトRoleはView
+    const roleToSet = profile.sche_role || "view";
+    if (!profile.sche_role) {
+      await supabase.from("profiles").update({ sche_role: "view" }).eq("id", profile.id);
+    }
     const newW = {
       id: profile.id,
       name: profile.display_name || profile.email,
       color: workerColors[workerList.length % workerColors.length],
-      sche_role: "worker",
-      email: profile.email
+      sche_role: roleToSet,
+      email: profile.email,
+      avatar_url: profile.avatar_url,
+      avatar_url2: profile.avatar_url2
     };
     setWorkerList([...workerList, newW]);
     setNewWorkerEmail("");
@@ -1449,134 +1622,162 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 8, padding: 22, width: 540, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 6 }}><IconGear size={16} color="#1e293b" /> 管理者設定</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94a3b8" }}>✕</button>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={onClose}>
+      <div style={{ background: "var(--bg-app)", borderRadius: 8, width: 800, maxWidth: "95%", height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow)", overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ padding: "16px 24px", background: "var(--bg-header)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <h2 style={{ margin: 0, color: "var(--bg-header-text)", fontSize: 18, fontWeight: 900 }}>管理者設定 / Master Data</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--bg-header-text)", cursor: "pointer", padding: 4, borderRadius: "50%" }}>
+            <IconX size={20} />
+          </button>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, borderBottom: "1px solid #e2e8f0" }}>
-          <button onClick={() => setTab("types")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "types" ? 700 : 500, color: tab === "types" ? "#1e40af" : "#64748b", borderBottom: tab === "types" ? "2px solid #1e40af" : "2px solid transparent" }}>タイプマスタ</button>
-          <button onClick={() => setTab("workers")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "workers" ? 700 : 500, color: tab === "workers" ? "#1e40af" : "#64748b", borderBottom: tab === "workers" ? "2px solid #1e40af" : "2px solid transparent" }}>対応者管理</button>
-          <button onClick={() => setTab("equipment")} style={{ padding: "8px 12px", border: "none", background: "none", cursor: "pointer", fontWeight: tab === "equipment" ? 700 : 500, color: tab === "equipment" ? "#1e40af" : "#64748b", borderBottom: tab === "equipment" ? "2px solid #1e40af" : "2px solid transparent" }}>号機管理</button>
+        {/* Tabs */}
+        <div style={{ display: "flex", background: "var(--bg-header)", padding: "0 24px" }}>
+          {["types", "workers", "equipment"].map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              padding: "12px 20px", border: "none", background: "none",
+              color: tab === t ? "var(--bg-header-text)" : "rgba(255,255,255,0.5)",
+              fontSize: 13, fontWeight: 700, cursor: "pointer",
+              borderBottom: tab === t ? "3px solid #60a5fa" : "3px solid transparent",
+              transition: "all 0.2s"
+            }}>
+              {t === "types" ? "案件タイプ設定" : t === "workers" ? "対応者(ユーザー)管理" : "号機・物件マスタ管理"}
+            </button>
+          ))}
         </div>
 
-        <div style={{ overflowY: "auto", flex: 1, paddingRight: 4 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 24, background: "var(--bg-app)" }}>
           {tab === "types" && (
-            <>
-              {typeList.map((t, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
-                  <span style={{ padding: "2px 10px", borderRadius: 3, fontSize: 11, fontWeight: 700, background: t.color.badge, color: t.color.text }}>{t.name}</span>
-                  <div style={{ display: "flex", gap: 2, flex: 1 }}>
-                    {TYPE_COLOR_PRESETS.map((p, pi) => (
-                      <button key={pi} onClick={() => { const n = [...typeList]; n[idx] = { ...n[idx], color: p }; setTypeList(n); }}
-                        style={{ width: 16, height: 16, borderRadius: "50%", border: t.color.badge === p.badge ? "2px solid #1e293b" : "1px solid #e2e8f0", background: p.badge, cursor: "pointer" }} />
-                    ))}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+              <div>
+                <h4 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 800, color: "var(--text-main)", borderLeft: "4px solid #3b82f6", paddingLeft: 10 }}>タイプの新規追加 / 編集</h4>
+                <div style={{ background: "var(--bg-alt)", padding: 16, borderRadius: 8, border: "1px solid var(--border-color)" }}>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>タイプ名</label>
+                    <input type="text" value={newTypeName} onChange={e => setNewTypeName(e.target.value)} placeholder="例: 定期点検" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }} />
                   </div>
-                  <button onClick={() => { setEditingTypeIdx(idx); setNewTypeName(t.name); setSelectedPreset(TYPE_COLOR_PRESETS.findIndex(p => p.badge === t.color.badge) || 0); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "#64748b" }}><IconEdit size={13} /></button>
-                  <button onClick={() => removeType(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px" }}><IconTrash size={13} color="#ef4444" /></button>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>カラープリセット</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {TYPE_COLOR_PRESETS.map((p, pi) => (
+                        <button key={pi} onClick={() => setSelectedPreset(pi)}
+                          style={{ width: 28, height: 28, borderRadius: "50%", border: selectedPreset === pi ? "3px solid #3b82f6" : "1px solid var(--border-color)", background: p.badge, cursor: "pointer", transition: "all 0.1s" }} />
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={addType} style={{ width: "100%", padding: "10px", borderRadius: 4, border: "none", background: "#3b82f6", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{editingTypeIdx !== null ? "変更を保存" : "タイプを追加"}</button>
+                  {editingTypeIdx !== null && (
+                    <button onClick={() => { setEditingTypeIdx(null); setNewTypeName(""); }} style={{ width: "100%", padding: "8px", marginTop: 8, borderRadius: 4, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", cursor: "pointer", fontSize: 12 }}>キャンセル</button>
+                  )}
                 </div>
-              ))}
-              <div style={{ display: "flex", gap: 6, margin: "12px 0 6px", alignItems: "center" }}>
-                <input value={newTypeName} onChange={e => setNewTypeName(e.target.value)} onKeyDown={e => e.key === "Enter" && addType()} placeholder="タイプ名..." style={{ flex: 1, padding: "5px 8px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11 }} />
-                <div style={{ display: "flex", gap: 2 }}>
-                  {TYPE_COLOR_PRESETS.map((p, pi) => (
-                    <button key={pi} onClick={() => setSelectedPreset(pi)}
-                      style={{ width: 14, height: 14, borderRadius: "50%", border: selectedPreset === pi ? "2px solid #1e293b" : "1px solid #d1d5db", background: p.badge, cursor: "pointer" }} />
+              </div>
+              <div>
+                <h4 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 800, color: "var(--text-main)" }}>登録済みタイプ一覧</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {typeList.map((t, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "var(--bg-app)", border: "1px solid var(--border-color)", borderRadius: 6, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: "50%", background: t.color.badge }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-main)" }}>{t.name}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => { setEditingTypeIdx(i); setNewTypeName(t.name); setSelectedPreset(TYPE_COLOR_PRESETS.findIndex(p => p.badge === t.color.badge) || 0); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-muted)" }} onMouseOver={e => e.currentTarget.style.color = "#3b82f6"} onMouseOut={e => e.currentTarget.style.color = "#94a3b8"}><IconEdit size={14} /></button>
+                        <button onClick={() => removeType(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-muted)" }} onMouseOver={e => e.currentTarget.style.color = "#ef4444"} onMouseOut={e => e.currentTarget.style.color = "#94a3b8"}><IconTrash size={14} /></button>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                {editingTypeIdx !== null && <button onClick={() => { setEditingTypeIdx(null); setNewTypeName(""); }} style={{ padding: "5px 8px", borderRadius: 3, border: "1px solid #d1d5db", background: "#f8fafc", color: "#64748b", fontSize: 11, cursor: "pointer" }}>キャンセル</button>}
-                <button onClick={addType} style={{ padding: "5px 12px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{editingTypeIdx !== null ? "更新" : "追加"}</button>
               </div>
-            </>
+            </div>
           )}
 
           {tab === "workers" && (
-            <>
-              {/* 対応者一覧（sche_role 付き） */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {workerList.map(w => (
-                <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid #f1f5f9" }}>
-                  <span style={{ width: 22, height: 22, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
+                <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--bg-app)", border: "1px solid var(--border-color)", borderRadius: 6 }}>
+                  <UserAvatar user={w} size={24} />
                   {editingWorkerId === w.id ? (
                     <>
-                      <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)} onKeyDown={e => e.key === "Enter" && updateWorkerName()} style={{ flex: 1, padding: "3px 6px", border: "1px solid #93c5fd", borderRadius: 3, fontSize: 11 }} />
-                      <button onClick={updateWorkerName} style={{ padding: "3px 8px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 10, cursor: "pointer" }}>OK</button>
-                      <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "3px 8px", borderRadius: 3, border: "1px solid #d1d5db", background: "#f8fafc", color: "#64748b", fontSize: 10, cursor: "pointer" }}>×</button>
+                      <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)}
+                        style={{ flex: 1, padding: "3px 8px", border: "1px solid #3b82f6", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }} autoFocus />
+                      <button onClick={updateWorkerName} style={{ padding: "3px 8px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, cursor: "pointer" }}>OK</button>
+                      <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "3px 8px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>×</button>
                     </>
                   ) : (
                     <>
-                      <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{w.name}</span>
-                      <select value={w.sche_role || "worker"} onChange={e => changeRole(w.id, e.target.value)}
-                        style={{ padding: "2px 4px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 10, color: SCHE_ROLE_COLORS[w.sche_role || "worker"], fontWeight: 700 }}>
-                        {SCHE_ROLES.map(r => <option key={r} value={r}>{SCHE_ROLE_LABELS[r]}</option>)}
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--text-main)" }}>{w.name}</span>
+                      <select value={w.sche_role || "view"} onChange={e => changeRole(w.id, e.target.value)}
+                        disabled={!perms?.canManageRoles}
+                        style={{ padding: "2px 4px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 11, background: "var(--bg-input)", color: SCHE_ROLE_COLORS[w.sche_role || "view"] || SCHE_ROLE_COLORS["view"], fontWeight: 700, cursor: perms?.canManageRoles ? "pointer" : "default", opacity: perms?.canManageRoles ? 1 : 0.8 }}>
+                        {SCHE_ROLES.map(r => <option key={r} value={r}>{SCHE_ROLE_LABELS[r] || r}</option>)}
                       </select>
-                      <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "#64748b" }}><IconEdit size={13} /></button>
+                      <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "var(--text-muted)" }}><IconEdit size={13} /></button>
                       <button onClick={() => removeWorker(w.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "2px" }}><IconTrash size={13} color="#ef4444" /></button>
                     </>
                   )}
                 </div>
               ))}
 
-              {/* 対応者追加（メール確認） */}
-              <div style={{ margin: "14px 0 6px", padding: "10px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 6 }}>対応者を追加（メールアドレスで検索）</div>
+              {/* 案件担当 FE追加（メール確認） */}
+              <div style={{ margin: "14px 0 6px", padding: "10px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-main)", marginBottom: 6 }}>案件担当 (FE) を追加（メールアドレスで検索）</div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <input value={newWorkerEmail} onChange={e => setNewWorkerEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && searchByEmail()}
-                    placeholder="email@example.com" style={{ flex: 1, padding: "5px 8px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 11 }} />
+                    placeholder="email@example.com" style={{ flex: 1, padding: "5px 8px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 12, background: "var(--bg-input)", color: "var(--text-main)" }} />
                   <button onClick={searchByEmail} disabled={emailSearching}
-                    style={{ padding: "5px 12px", borderRadius: 3, border: "none", background: "#475569", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", opacity: emailSearching ? 0.6 : 1 }}>
+                    style={{ padding: "5px 12px", borderRadius: 3, border: "none", background: "#475569", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", opacity: emailSearching ? 0.6 : 1 }}>
                     {emailSearching ? "検索中..." : "検索"}
                   </button>
                 </div>
                 {emailSearchResult && (
                   <div style={{ marginTop: 8 }}>
                     {emailSearchResult.found ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", background: "#dcfce7", borderRadius: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", background: "rgba(22, 163, 74, 0.1)", borderRadius: 4, border: "1px solid #16a34a" }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#16a34a", flex: 1 }}>
                           {emailSearchResult.profile.display_name || emailSearchResult.profile.email} を追加しますか？
                         </span>
                         <button onClick={addWorkerFromProfile}
-                          style={{ padding: "4px 12px", borderRadius: 3, border: "none", background: "#16a34a", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>追加</button>
+                          style={{ padding: "4px 12px", borderRadius: 3, border: "none", background: "#16a34a", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>追加</button>
                       </div>
                     ) : (
-                      <div style={{ fontSize: 11, color: "#dc2626", padding: "4px 0" }}>{emailSearchResult.message}</div>
+                      <div style={{ fontSize: 12, color: "#ef4444", padding: "4px 0" }}>{emailSearchResult.message}</div>
                     )}
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
           {tab === "equipment" && (
-            <div style={{ padding: "10px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", marginBottom: 12 }}>新規号機の追加</div>
+            <div style={{ padding: "10px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-main)", marginBottom: 12 }}>新規号機の追加</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>号機 (Machine number)</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>号機 (Machine number)</label>
                   <input type="number" value={eqMachine} onChange={e => setEqMachine(e.target.value)}
-                    placeholder="例: 1234" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                    placeholder="例: 1234" style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>物件名 (Property name)</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>物件名 (Property name)</label>
                   <input type="text" value={eqProp} onChange={e => setEqProp(e.target.value)}
-                    placeholder="例: フルタイムレジデンス" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                    placeholder="例: フルタイムレジデンス" style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>県別 (prefectures)</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>県別 (prefectures)</label>
                   <input type="text" value={eqPref} onChange={e => setEqPref(e.target.value)}
-                    placeholder="例: 東京都" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                    placeholder="例: 東京都" style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>エリア (address)</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>エリア (address)</label>
                   <input type="text" value={eqAddr} onChange={e => setEqAddr(e.target.value)}
-                    placeholder="例: 千代田区" style={{ width: "100%", padding: "6px 8px", border: "1px solid #d1d5db", borderRadius: 4, fontSize: 12, boxSizing: "border-box" }} />
+                    placeholder="例: 千代田区" style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" }} />
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontSize: 11, color: eqMsg?.error ? "#dc2626" : "#16a34a", fontWeight: 600 }}>{eqMsg?.text}</div>
+                <div style={{ fontSize: 12, color: eqMsg?.error ? "#ef4444" : "#16a34a", fontWeight: 600 }}>{eqMsg?.text}</div>
                 <button onClick={addEquipment} disabled={eqAdding}
-                  style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", opacity: eqAdding ? 0.6 : 1 }}>
+                  style={{ padding: "6px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", opacity: eqAdding ? 0.6 : 1 }}>
                   {eqAdding ? "追加中..." : "追加"}
                 </button>
               </div>
@@ -1584,9 +1785,9 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 12, borderTop: "1px solid #e5e7eb", marginTop: 10 }}>
-          <button onClick={onClose} style={{ padding: "6px 14px", borderRadius: 3, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, cursor: "pointer" }}>キャンセル</button>
-          <button onClick={save} style={{ padding: "6px 18px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>保存</button>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "16px 24px", borderTop: "1px solid var(--border-color)", background: "var(--bg-alt)" }}>
+          <button onClick={onClose} style={{ padding: "6px 14px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 12, cursor: "pointer" }}>キャンセル</button>
+          <button onClick={save} style={{ padding: "6px 18px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>保存</button>
         </div>
       </div>
     </div>
@@ -1597,15 +1798,15 @@ function AdminModal({ types, workers, onSaveTypes, onSaveWorkers, onClose }) {
 function Legend({ workers }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "6px 0" }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>対応者:</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>対応者:</span>
       {workers.map(w => (
         <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10 }}>
-          <span style={{ width: 14, height: 14, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800 }}>{typeof w.id === "string" ? w.name?.charAt(0) : w.id}</span>
-          <span style={{ color: "#475569", fontWeight: 600 }}>{w.name}</span>
+          <UserAvatar user={w} size={18} />
+          <span style={{ color: "var(--text-main)", fontWeight: 600 }}>{w.name}</span>
         </span>
       ))}
-      <div style={{ width: 1, height: 14, background: "#e2e8f0", margin: "0 4px" }} />
-      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>タイプ:</span>
+      <div style={{ width: 1, height: 14, background: "var(--border-light)", margin: "0 4px" }} />
+      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>タイプ:</span>
       {Object.entries(typeColors).map(([k, v]) => (
         <span key={k} style={{ fontSize: 9, padding: "1px 6px", borderRadius: 2, background: v.bg, color: v.text, fontWeight: 700, border: `1px solid ${v.badge}` }}>{k}</span>
       ))}
@@ -1657,11 +1858,146 @@ function LoginScreen() {
     </div>
   );
 }
+// --- Error Boundary ---
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, errorInfo) { console.error("ErrorBoundary caught:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, color: "red", background: "#fff", height: "100vh" }}>
+          <h2>アプリの描画中にエラーが発生しました</h2>
+          <pre style={{ fontSize: 12, overflow: "auto" }}>{this.state.error?.toString()}</pre>
+          <button onClick={() => window.location.reload()} style={{ padding: "8px 16px", marginTop: 20 }}>リロード</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// --- Global Styles ---
+const GlobalStyles = () => (
+  <style>{`
+    :root {
+      /* Light Mode (Default) */
+      --bg-body: #eef2f6;
+      --bg-app: #ffffff;
+      --bg-header: #0f172a;
+      --bg-header-text: #ffffff;
+      --bg-alt: #f8fafc;
+      --bg-input: #ffffff;
+      --bg-modal-overlay: rgba(0,0,0,0.5);
+      --border-color: #cbd5e1;
+      --border-light: #e2e8f0;
+      --text-main: #1e293b;
+      --text-sub: #475569;
+      --text-muted: #64748b;
+      --text-accent: #2563eb;
+      --text-on-dark: #ffffff;
+      --color-danger-dark: #ef4444;
+      --color-warning-light: #fef3c7;
+      --color-warning-dark: #92400e;
+      --shadow: 0 4px 15px rgba(0,0,0,0.05);
+      --calendar-grid-border: #cbd5e1;
+      --calendar-cell-border: white;
+      --bg-sat: #f1f7ff;
+      --bg-sun: #fff1f2;
+      --bg-today: #f0f9ff;
+      --accent-today: #0ea5e9;
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(0, 0, 0, 0.05);
+
+      /* Type Colors - Light */
+      --type-bg-inspect: #fff7ed; --type-badge-inspect: #f97316; --type-text-inspect: #9a3412;
+      --type-bg-repair: #f0f9ff; --type-badge-repair: #0ea5e9; --type-text-repair: #0c4a6e;
+      --type-bg-install: #f0fdf4; --type-badge-install: #22c55e; --type-text-install: #166534;
+      --type-bg-remove: #faf5ff; --type-badge-remove: #a855f7; --type-text-remove: #6b21a8;
+      --type-bg-maint: #fff1f2; --type-badge-maint: #f43f5e; --type-text-maint: #9f1239;
+      --type-bg-other: #f1f5f9; --type-badge-other: #64748b; --type-text-other: #334155;
+
+      /* Result Colors - Light */
+      --res-bg-done: #dcfce7;
+      --res-bg-cancel: #fee2e2;
+      --res-bg-pending: #fef3c7;
+      --res-bg-other: #f1f5f9;
+    }
+
+    [data-theme='dark'] {
+      --bg-body: #020617;
+      --bg-app: #1e293b;
+      --bg-header: #000000;
+      --bg-header-text: #ffffff;
+      --bg-alt: #0f172a;
+      --bg-input: #020617;
+      --bg-modal-overlay: rgba(0,0,0,0.85);
+      --border-color: #334155;
+      --border-light: #475569;
+      --text-main: #ffffff;
+      --text-sub: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-accent: #38bdf8;
+      --text-on-dark: #ffffff;
+      --color-danger-dark: #fb7185;
+      --color-warning-light: rgba(234, 179, 8, 0.15);
+      --color-warning-dark: #facc15;
+      --shadow: 0 10px 40px rgba(0,0,0,0.6);
+      --calendar-grid-border: #000000;
+      --calendar-cell-border: rgba(255,255,255,0.03);
+      --bg-sat: #111e35;
+      --bg-sun: #2a1215;
+      --bg-today: #0c1a30;
+      --accent-today: #0ea5e9;
+      --glass-bg: rgba(15, 23, 42, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.08);
+
+      /* Type Colors - Dark (Deep Tone) */
+      --type-bg-inspect: #431407; --type-badge-inspect: #f97316; --type-text-inspect: #ffedd5;
+      --type-bg-repair: #082f49; --type-badge-repair: #0ea5e9; --type-text-repair: #e0f2fe;
+      --type-bg-install: #052e16; --type-badge-install: #22c55e; --type-text-install: #dcfce7;
+      --type-bg-remove: #2e1065; --type-badge-remove: #a855f7; --type-text-remove: #f3e8ff;
+      --type-bg-maint: #4c0519; --type-badge-maint: #f43f5e; --type-text-maint: #ffe4e6;
+      --type-bg-other: #1e293b; --type-badge-other: #94a3b8; --type-text-other: #f1f5f9;
+
+      /* Result Colors - Dark */
+      --res-bg-done: #064e3b;
+      --res-bg-cancel: #7f1d1d;
+      --res-bg-pending: #78350f;
+      --res-bg-other: #334155;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      transition: background-color 0.2s, color 0.2s;
+      font-family: 'Noto Sans JP', 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+    }
+
+    .today-premium {
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.1);
+      border: 1.5px solid var(--accent-today) !important;
+      z-index: 1;
+    }
+  `}</style>
+);
+
 // --- Main App ---
 export default function App() {
   const now = new Date();
+  const todayStr = fmtDate(now.getFullYear(), now.getMonth(), now.getDate());
   const [workers, setWorkers] = useState(INITIAL_WORKERS);
-  const [tickets, setTickets] = useState(() => generateSampleData(INITIAL_WORKERS));
+  const [tickets, setTickets] = useState(Array.isArray(initialTicketsData) ? initialTicketsData : []);
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [view, setView] = useState("monthly");
@@ -1678,9 +2014,21 @@ export default function App() {
   const [workerActionMenu, setWorkerActionMenu] = useState(null);
   const [moveAllMenu, setMoveAllMenu] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [isFitWidth, setIsFitWidth] = useState(() => localStorage.getItem("isFitWidth") === "true");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hoveredDate, setHoveredDate] = useState(null);
   const [session, setSession] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("isFitWidth", isFitWidth);
+  }, [isFitWidth]);
 
   useEffect(() => {
     // Auth observer
@@ -1694,25 +2042,39 @@ export default function App() {
 
     // Fetch workers from Supabase (sche_role ベース)
     const fetchWorkers = async () => {
-      // sche_role が設定されたメンバーを取得（worker, admin）
-      // sche_role が null ではない = スケジュール管理の対応者
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, display_name, sche_role")
-        .not("sche_role", "is", null);
+        .select("id, email, display_name, sche_role, avatar_url, avatar_url2");
 
-      if (!error && data && data.length > 0) {
-        const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
-        const fetched = data.map((d, i) => ({
-          id: d.id,
-          name: d.display_name || d.email || "Unknown",
-          color: colors[i % colors.length],
-          sche_role: d.sche_role,
-          email: d.email
-        }));
+      if (!error && data) {
+        // カラーマッピング用の色配列
+        const presetColors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
+        
+        // INITIAL_WORKERS を名前ベースの色引き出し用マップに変換
+        const colorRefMap = new Map();
+        INITIAL_WORKERS.forEach(w => colorRefMap.set(w.name, w.color));
+
+        const fetched = data.map((d, i) => {
+          const name = d.display_name || d.email || "Unknown";
+          // 既存の INITIAL_WORKERS に名前があればその色を、なければ配布配列から
+          const color = colorRefMap.get(name) || presetColors[i % presetColors.length];
+          
+          return {
+            id: d.id,
+            name: name,
+            color: color,
+            sche_role: d.sche_role || "view",
+            email: d.email,
+            avatar_url: d.avatar_url,
+            avatar_url2: d.avatar_url2
+          };
+        });
+
         setWorkers(fetched);
       } else if (error) {
         console.error("Fetch workers error:", error);
+        // エラー時はフォールバックとして INITIAL_WORKERS を表示（オプション）
+        setWorkers(INITIAL_WORKERS);
       }
     };
     fetchWorkers();
@@ -1726,15 +2088,57 @@ export default function App() {
     };
   }, []);
 
-  // Update isAdmin based on session and worker list
+  // Update userRole based on session and worker list
+  const [userRole, setUserRole] = useState("view");
   useEffect(() => {
     if (session && workers.length > 0) {
       const myProfile = workers.find(w => w.email === session?.user?.email);
-      setIsAdmin(myProfile?.sche_role === 'admin');
+      const role = myProfile?.sche_role || 'view';
+      setUserRole(role);
+      setIsAdmin(role === 'admin');
     } else {
+      setUserRole("view");
       setIsAdmin(false);
     }
   }, [session, workers]);
+
+  // 権限判定ヘルパー
+  const perms = useMemo(() => {
+    const myEmail = session?.user?.email;
+    const myProfile = workers.find(w => w.email === myEmail);
+    const myId = String(myProfile?.id || "");
+
+    return {
+      userRole,
+      isAdmin: userRole === "admin",
+      canManageRoles: userRole === "admin",
+      canAssign: ["admin", "dispatcher", "field_engineer"].includes(userRole),
+      // チケットを編集可能か
+      canEditTicket: (t) => {
+        if (["admin", "dispatcher"].includes(userRole)) return true;
+        if (userRole === "field_engineer") {
+          // FEは自分の担当分のみ編集可能
+          return t.person === myId;
+        }
+        if (userRole === "editor") {
+          // Editorは自分で作成したもののみ編集可能
+          return t.createdBy === myEmail;
+        }
+        return false;
+      },
+      // チケットを削除可能か
+      canDeleteTicket: (t) => {
+        if (["admin", "dispatcher"].includes(userRole)) return true;
+        if (userRole === "editor") {
+          // Editorは自分で作成したもののみ削除可能
+          return t.createdBy === myEmail;
+        }
+        return false;
+      },
+      // チケット作成・追加可能か
+      canCreate: ["admin", "dispatcher", "field_engineer", "editor"].includes(userRole)
+    };
+  }, [userRole, workers, session]);
 
   const handleMoveAll = useCallback((dateStr, fromWorkerId, toWorkerId) => {
     setTickets(prev => prev.map(t => (t.date === dateStr && t.person === fromWorkerId) ? { ...t, person: toWorkerId } : t));
@@ -1751,13 +2155,18 @@ export default function App() {
   }, []);
 
   const filtered = useMemo(() => {
-    return tickets.filter(t => {
+    return (tickets || []).filter(t => {
       if (filterType && t.type !== filterType) return false;
-      if (filterWorker && t.person !== filterWorker) return false;
+      if (filterWorker) {
+        // フィルタリング時も苗字一致を許容
+        const w = workers.find(x => String(x.id) === filterWorker);
+        const filterName = w ? w.name : filterWorker;
+        if (t.person !== filterWorker && t.person !== filterName && !(filterName && t.person && (filterName.startsWith(t.person) || t.person.startsWith(filterName)))) return false;
+      }
       if (search) { const s = search.toLowerCase(); return Object.values(t).some(v => typeof v === "string" && v.toLowerCase().includes(s)); }
       return true;
     });
-  }, [tickets, filterType, filterWorker, search]);
+  }, [tickets, workers, filterType, filterWorker, search]);
 
   const monthTickets = useMemo(() => {
     const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
@@ -1771,13 +2180,36 @@ export default function App() {
   }), [monthTickets]);
 
   const handleSave = useCallback(ticket => {
-    setTickets(prev => { const i = prev.findIndex(t => t.id === ticket.id); if (i >= 0) { const n = [...prev]; n[i] = ticket; return n; } return [...prev, ticket]; });
+    // 保存時に作成者のemailを記録（既存のものがなければ追加）
+    const finalTicket = { ...ticket };
+    if (!finalTicket.createdBy && session?.user?.email) {
+      finalTicket.createdBy = session.user.email;
+    }
+    setTickets(prev => { const i = prev.findIndex(t => t.id === finalTicket.id); if (i >= 0) { const n = [...prev]; n[i] = finalTicket; return n; } return [...prev, finalTicket]; });
     setEditTicket(null); setIsNew(false);
-  }, []);
-  const handleDelete = useCallback(id => { setTickets(prev => prev.filter(t => t.id !== id)); }, []);
-  const todayStr = fmtDate(now.getFullYear(), now.getMonth(), now.getDate());
-  const handleAdd = useCallback(dateStr => { const t = emptyTicket(); t.date = dateStr || todayStr; setEditTicket(t); setIsNew(true); }, [todayStr]);
-  const handleEdit = useCallback(t => { setEditTicket({ ...t }); setIsNew(!t.type); }, []);
+  }, [session]);
+
+  const handleDelete = useCallback(id => {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    if (!perms.canDeleteTicket(t)) { alert("削除権限がありません"); return; }
+    setTickets(prev => prev.filter(t => t.id !== id));
+  }, [perms.canDeleteTicket, tickets]);
+
+  const handleAdd = useCallback((dateStr, workerId) => {
+    if (!perms.canCreate) { alert("予定を追加する権限がありません"); return; }
+    const t = emptyTicket();
+    t.date = dateStr || todayStr;
+    if (workerId && workerId !== "none") t.person = workerId;
+    setEditTicket(t);
+    setIsNew(true);
+  }, [todayStr, perms.canCreate]);
+
+  const handleEdit = useCallback(t => { 
+    if (!perms.canEditTicket(t)) { alert("この予定を編集する権限がありません"); return; }
+    setEditTicket({ ...t }); 
+    setIsNew(!t.type); 
+  }, [perms.canEditTicket]);
   const openDaily = dateStr => { setSelectedDate(dateStr); setView("daily"); };
 
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
@@ -1786,232 +2218,316 @@ export default function App() {
   const nextDay = () => { if (!selectedDate) return; const dd = new Date(selectedDate + "T00:00:00"); dd.setDate(dd.getDate() + 1); setSelectedDate(fmtDate(dd.getFullYear(), dd.getMonth(), dd.getDate())); };
 
   if (isInitializing) {
-    return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", color: "#64748b", fontSize: 14, fontWeight: 600 }}>Loading...</div>;
+    return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", color: "#64748b", fontSize: 15, fontWeight: 600 }}>Loading...</div>;
   }
   if (!session) {
     return <LoginScreen />;
   }
 
   return (
-    <div style={{ fontFamily: "'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif", background: "#e8ecf1", minHeight: "100vh", color: "#1e293b", paddingBottom: 48 }}>
-      {/* Worker Action Menu */}
-      {workerActionMenu && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }} onClick={() => setWorkerActionMenu(null)}>
-          <div style={{
-            position: "absolute",
-            left: Math.min(workerActionMenu.x, window.innerWidth - 160),
-            top: Math.min(workerActionMenu.y, window.innerHeight - 120),
-            background: "#fff",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            borderRadius: 6,
-            padding: 6,
-            border: "1px solid #cbd5e1",
-            display: "flex", flexDirection: "column", gap: 2,
-            minWidth: 160
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 12, fontWeight: 700, padding: "6px 8px", borderBottom: "1px solid #e2e8f0", marginBottom: 4, color: "#334155" }}>
-              {workerActionMenu.workerName}
-            </div>
-            <button onClick={() => {
-              toggleVacation(workerActionMenu.dateStr, workerActionMenu.workerId);
-              setWorkerActionMenu(null);
-            }} style={{ display: "flex", alignItems: "center", gap: 6, textAlign: "left", padding: "8px 10px", fontSize: 11, fontWeight: 600, background: "none", border: "none", cursor: "pointer", borderRadius: 4, color: "#1e293b" }} onMouseOver={e => e.currentTarget.style.background = "#f1f5f9"} onMouseOut={e => e.currentTarget.style.background = "none"}>
-              {vacations[workerActionMenu.dateStr]?.has(workerActionMenu.workerId) ? (
-                <><IconVacationSolid size={14} color="#f59e0b" /><span>出勤にする</span></>
-              ) : (
-                <><IconVacationSolid size={14} color="#94a3b8" /><span>休暇にする</span></>
-              )}
-            </button>
-            <button onClick={() => {
-              setMoveAllMenu({ workerId: workerActionMenu.workerId, workerName: workerActionMenu.workerName, dateStr: workerActionMenu.dateStr });
-              setWorkerActionMenu(null);
-            }} style={{ display: "flex", alignItems: "center", gap: 6, textAlign: "left", padding: "8px 10px", fontSize: 11, fontWeight: 600, background: "none", border: "none", cursor: "pointer", borderRadius: 4, color: "#1e293b" }} onMouseOver={e => e.currentTarget.style.background = "#f1f5f9"} onMouseOut={e => e.currentTarget.style.background = "none"}>
-              <IconMoveAll size={14} color="#3b82f6" />
-              <span>この日の予定を一括移動</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Move All Tickets Modal */}
-      {moveAllMenu && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setMoveAllMenu(null)}>
-          <div style={{ background: "#fff", borderRadius: 8, padding: 20, width: 320, boxShadow: "0 16px 48px rgba(0,0,0,0.25)" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 800 }}>全チケット一括移動</h3>
-            <p style={{ fontSize: 12, color: "#475569", margin: "0 0 12px", lineHeight: "1.4" }}>
-              {moveAllMenu.dateStr}の<b>{moveAllMenu.workerName}</b>さんの全チケットを別の人に移動します。
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: "50vh", overflowY: "auto", paddingRight: 4 }}>
-              {workers.filter(w => String(w.id) !== moveAllMenu.workerId).map(w => (
-                <button key={w.id} onClick={() => { handleMoveAll(moveAllMenu.dateStr, moveAllMenu.workerId, String(w.id)); setMoveAllMenu(null); }}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 4, background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "background 0.15s" }}
-                  onMouseOver={e => e.currentTarget.style.background = `${w.color}15`}
-                  onMouseOut={e => e.currentTarget.style.background = "#fff"}>
-                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: w.color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>{w.id}</span>
-                  <span style={{ color: w.color }}>{w.name} に移動する</span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setMoveAllMenu(null)} style={{ marginTop: 16, width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: 4, background: "#f8fafc", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>キャンセル</button>
-          </div>
-        </div>
-      )}
-
-      {/* Top bar */}
-      <div style={{ background: "#1e293b", padding: "8px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <IconCalendar size={18} color="#93c5fd" />
-          <span style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>Total Scheduling System</span>
-        </div>
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 2, marginRight: 10, background: "rgba(255,255,255,0.1)", borderRadius: 4, padding: "2px 6px" }}>
-            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>－</button>
-            <span style={{ color: "#fff", fontSize: 10, minWidth: 32, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>＋</button>
-          </div>
-          <button onClick={() => setShowAdmin(true)} title="管理者設定" style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: showAdmin ? "rgba(255,255,255,0.2)" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"} onMouseOut={e => e.currentTarget.style.background = showAdmin ? "rgba(255,255,255,0.2)" : "transparent"}><IconGear size={14} color={showAdmin ? "#fff" : "rgba(255,255,255,0.7)"} /></button>
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
-          <button onClick={() => setView("monthly")} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "monthly" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "monthly" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Monthly</button>
-          <button onClick={() => { if (!selectedDate) setSelectedDate(fmtDate(now.getFullYear(), now.getMonth(), now.getDate())); setView("daily"); }} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "daily" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "daily" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Daily</button>
-          <button onClick={() => setView("pool")} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: view === "pool" ? "rgba(255,255,255,0.15)" : "transparent", color: view === "pool" ? "#93c5fd" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconPool size={13} color={view === "pool" ? "#93c5fd" : "rgba(255,255,255,0.5)"} /> Pool</button>
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
-          <button onClick={() => supabase.auth.signOut()} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: "rgba(220,38,38,0.2)", color: "#fca5a5", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center" }}>ログアウト</button>
-        </div>
-      </div>
-
-      {/* Filters + legend */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #d1d5db", padding: "4px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <input type="text" placeholder="検索..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "3px 8px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 10, width: 120 }} />
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "3px 6px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 10 }}>
-            <option value="">全タイプ</option>{types.map(t => <option key={t}>{t}</option>)}
-          </select>
-          <select value={filterWorker} onChange={e => setFilterWorker(e.target.value)} style={{ padding: "3px 6px", border: "1px solid #d1d5db", borderRadius: 3, fontSize: 10 }}>
-            <option value="">全対応者</option>{workers.map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
-          </select>
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: "#64748b" }}>合計:<b style={{ color: "#1e40af" }}>{stats.total}</b></span>
-          <span style={{ fontSize: 10, color: "#64748b" }}>完了:<b style={{ color: "#16a34a" }}>{stats.done}</b></span>
-          <span style={{ fontSize: 10, color: "#64748b" }}>未対応:<b style={{ color: "#d97706" }}>{stats.pending}</b></span>
-        </div>
-        <Legend workers={workers} />
-      </div>
-
-      {/* Main content */}
-      <div style={{ padding: "10px 16px", transform: `scale(${zoom})`, transformOrigin: "top center", transition: "transform 0.2s" }}>
-        {view === "monthly" ? (
-          <MonthCalendar
-            tickets={monthTickets}
-            year={year} month={month}
-            workers={workers}
-            vacations={vacations}
-            onDayClick={openDaily}
-            onEdit={handleEdit}
-            onView={t => setViewingTicket({ ...t })}
-            onAdd={handleAdd}
-            isAdmin={isAdmin}
-            onReorder={(dateStr, workerId, fromId, toId) => {
-              setTickets(prev => {
-                const next = [...prev];
-                const fromGlobalIdx = next.findIndex(t => t.id === fromId);
-                if (fromGlobalIdx < 0) return prev;
-                const [moved] = next.splice(fromGlobalIdx, 1);
-
-                if (toId && toId !== "end") {
-                  const newToIdx = next.findIndex(t => t.id === toId);
-                  if (newToIdx < 0) { next.push(moved); } else { next.splice(newToIdx, 0, moved); }
-                } else {
-                  const workerTicketsToday = next.filter(t => t.date === dateStr && t.person === workerId);
-                  if (workerTicketsToday.length > 0) {
-                    const lastId = workerTicketsToday[workerTicketsToday.length - 1].id;
-                    const lastGlobalIdx = next.findIndex(t => t.id === lastId);
-                    next.splice(lastGlobalIdx + 1, 0, moved);
-                  } else {
-                    next.push(moved);
-                  }
-                }
-                return next;
-              });
-            }}
-            onMoveTicket={(ticketId, newWorkerId) => {
-              setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, person: newWorkerId } : t));
-            }}
-          />
-        ) : view === "pool" ? (
-          <ProcessingPool tickets={tickets} workers={workers} onEdit={handleEdit} onDelete={handleDelete}
-            onAssign={(ticketId, date, workerId) => {
-              setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, date, person: workerId } : t));
-            }} />
-        ) : selectedDate ? (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <button onClick={() => setView("monthly")} style={{ background: "none", border: "none", cursor: "pointer", color: "#2563eb", fontSize: 12, fontWeight: 600 }}>◂ 月間に戻る</button>
-              <div style={{ flex: 1 }} />
-              <button onClick={prevDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, cursor: "pointer" }}>◂ 前日</button>
-              <button onClick={nextDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid #d1d5db", background: "#fff", fontSize: 11, cursor: "pointer" }}>翌日 ▸</button>
-            </div>
-            <DailyDetail tickets={filtered} dateStr={selectedDate} workers={workers} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} onView={t => setViewingTicket({ ...t })} onSave={handleSave} vacations={vacations} onToggleVacation={toggleVacation} onReorder={(dateStr, workerId, fromId, toId) => {
-              if (toId === "end") {
-                setTickets(prev => {
-                  const next = [...prev];
-                  const fromGlobalIdx = next.findIndex(t => t.id === fromId);
-                  if (fromGlobalIdx < 0) return prev;
-                  const [moved] = next.splice(fromGlobalIdx, 1);
-                  const workerTicketsToday = next.filter(t => t.date === dateStr && t.person === workerId);
-                  if (workerTicketsToday.length > 0) {
-                    const lastId = workerTicketsToday[workerTicketsToday.length - 1].id;
-                    const lastGlobalIdx = next.findIndex(t => t.id === lastId);
-                    next.splice(lastGlobalIdx + 1, 0, moved);
-                  } else {
-                    next.push(moved);
-                  }
-                  return next;
-                });
-                return;
-              }
-              setTickets(prev => {
-                const next = [...prev];
-                const fromGlobalIdx = next.findIndex(t => t.id === fromId);
-                const toGlobalIdx = next.findIndex(t => t.id === toId);
-                if (fromGlobalIdx < 0 || toGlobalIdx < 0) return prev;
-                const [moved] = next.splice(fromGlobalIdx, 1);
-                const newToIdx = next.findIndex(t => t.id === toId);
-                if (newToIdx < 0) { next.push(moved); } else { next.splice(newToIdx, 0, moved); }
-                return next;
-              });
-            }} onMoveTicket={(ticketId, newWorkerId) => {
-              setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, person: newWorkerId } : t));
-            }} />
-          </>
-        ) : null}
-      </div>
-
-      {/* Month tabs (bottom, like spreadsheet) */}
+    <ErrorBoundary>
+      <GlobalStyles />
       <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0,
-        background: "#fff", borderTop: "1px solid #c7cbd1",
-        display: "flex", alignItems: "center", padding: "0 8px",
-        boxShadow: "0 -2px 6px rgba(0,0,0,0.06)", zIndex: 100,
+        fontFamily: "'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif",
+        background: "var(--bg-body)",
+        height: "100vh",
+        color: "var(--text-main)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden"
       }}>
-        <button onClick={() => setYear(y => y - 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "#64748b" }}>◂年</button>
-        <button onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "#64748b" }}>◂</button>
-        {MONTHS.map((m, i) => (
-          <button key={i} onClick={() => setMonth(i)} style={{
-            padding: "8px 12px", border: "none", cursor: "pointer",
-            fontSize: 12, fontWeight: month === i ? 800 : 500,
-            color: month === i ? "#1e40af" : "#64748b",
-            background: month === i ? "#dbeafe" : "transparent",
-            borderTop: month === i ? "3px solid #2563eb" : "3px solid transparent",
-          }}>{m}</button>
-        ))}
-        <button onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "#64748b" }}>▸</button>
-        <button onClick={() => setYear(y => y + 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "#64748b" }}>年▸</button>
-      </div>
+        {/* Worker Action Menu */}
+        {workerActionMenu && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999 }} onClick={() => setWorkerActionMenu(null)}>
+            <div style={{
+              position: "absolute",
+              left: Math.min(workerActionMenu.x, window.innerWidth - 160),
+              top: Math.min(workerActionMenu.y, window.innerHeight - 120),
+              background: "var(--bg-app)",
+              boxShadow: "var(--shadow)",
+              borderRadius: 6,
+              padding: 6,
+              border: "1px solid var(--border-color)",
+              display: "flex", flexDirection: "column", gap: 2,
+              minWidth: 160
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: 14, fontWeight: 800, padding: "8px 10px", borderBottom: "1px solid var(--border-light)", marginBottom: 6, color: "var(--text-main)", background: "var(--bg-alt)", borderRadius: "6px 6px 0 0" }}>
+                {workerActionMenu.workerName}
+              </div>
+              <button onClick={() => {
+                handleAdd(workerActionMenu.dateStr, workerActionMenu.workerId);
+                setWorkerActionMenu(null);
+              }} style={{ display: "flex", alignItems: "center", gap: 8, textAlign: "left", padding: "10px 12px", fontSize: 13, fontWeight: 700, background: "none", border: "none", cursor: "pointer", borderRadius: 4, color: "#2563eb" }} onMouseOver={e => e.currentTarget.style.background = "#eff6ff"} onMouseOut={e => e.currentTarget.style.background = "none"}>
+                <IconPlus size={14} color="#2563eb" />
+                <span>予定を追加する</span>
+              </button>
+              <button onClick={() => {
+                toggleVacation(workerActionMenu.dateStr, workerActionMenu.workerId);
+                setWorkerActionMenu(null);
+              }} style={{ display: "flex", alignItems: "center", gap: 8, textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 700, background: "none", border: "none", cursor: "pointer", borderRadius: 4, color: "var(--text-main)" }} onMouseOver={e => e.currentTarget.style.background = "var(--border-light)"} onMouseOut={e => e.currentTarget.style.background = "none"}>
+                {vacations[workerActionMenu.dateStr]?.has(workerActionMenu.workerId) ? (
+                  <><IconVacationSolid size={14} color="#f59e0b" /><span>出勤にする</span></>
+                ) : (
+                  <><IconVacationSolid size={14} color="#94a3b8" /><span>休暇にする</span></>
+                )}
+              </button>
+              <button onClick={() => {
+                setMoveAllMenu({ workerId: workerActionMenu.workerId, workerName: workerActionMenu.workerName, dateStr: workerActionMenu.dateStr });
+                setWorkerActionMenu(null);
+              }} style={{ display: "flex", alignItems: "center", gap: 8, textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 700, background: "none", border: "none", cursor: "pointer", borderRadius: 4, color: "var(--text-main)" }} onMouseOver={e => e.currentTarget.style.background = "var(--border-light)"} onMouseOut={e => e.currentTarget.style.background = "none"}>
+                <IconMoveAll size={14} color="#3b82f6" />
+                <span>この日の予定を一括移動</span>
+              </button>
+            </div>
+          </div>
+        )}
 
-      {/* Modals */}
-      {viewingTicket && <TicketDetailModal ticket={viewingTicket} workers={workers} onClose={() => setViewingTicket(null)} onEdit={t => { setViewingTicket(null); handleEdit(t); }} onDelete={id => { setViewingTicket(null); handleDelete(id); }} />}
-      {editTicket && <TicketFormModal ticket={editTicket} isNew={isNew} onSave={handleSave} onClose={() => { setEditTicket(null); setIsNew(false); }} workers={workers} />}
-      {showAdmin && <AdminModal types={types} workers={workers} onSaveTypes={t => { setTypes(t); setShowAdmin(false); }} onSaveWorkers={w => { setWorkers(w); setShowAdmin(false); }} onClose={() => setShowAdmin(false)} />}
-    </div>
+        {/* Move All Tickets Modal */}
+        {moveAllMenu && (
+          <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000 }} onClick={() => setMoveAllMenu(null)}>
+            <div style={{ background: "var(--bg-app)", borderRadius: 8, padding: 20, width: 320, boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
+              <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 800 }}>全チケット一括移動</h3>
+              <p style={{ fontSize: 12, color: "#475569", margin: "0 0 12px", lineHeight: "1.4" }}>
+                {moveAllMenu.dateStr}の<b>{moveAllMenu.workerName}</b>さんの全チケットを別の人に移動します。
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: "50vh", overflowY: "auto", paddingRight: 4 }}>
+                {workers.filter(w => String(w.id) !== moveAllMenu.workerId).map(w => (
+                  <button key={w.id} onClick={() => { handleMoveAll(moveAllMenu.dateStr, moveAllMenu.workerId, String(w.id)); setMoveAllMenu(null); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 4, background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "background 0.15s" }}
+                    onMouseOver={e => e.currentTarget.style.background = `${w.color}15`}
+                    onMouseOut={e => e.currentTarget.style.background = "#fff"}>
+                    <UserAvatar user={w} size={20} />
+                    <span style={{ color: w.color }}>{w.name} に移動する</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setMoveAllMenu(null)} style={{ marginTop: 16, width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: 4, background: "#f8fafc", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>キャンセル</button>
+            </div>
+          </div>
+        )}
+
+        {/* Top bar */}
+        <div className="glass" style={{ background: "var(--bg-header)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", zIndex: 100, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <IconCalendar size={18} color="#93c5fd" />
+            <span style={{ fontSize: 20, fontWeight: 900, color: "var(--bg-header-text)" }}>Total Scheduling System</span>
+          </div>
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            <button
+              onClick={() => setTheme(t => t === "light" ? "dark" : "light")}
+              title={theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
+              style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }}
+              onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+              onMouseOut={e => e.currentTarget.style.background = "transparent"}
+            >
+              {theme === "light" ? <IconMoon size={16} color="rgba(255,255,255,0.7)" /> : <IconSun size={16} color="#fbbf24" />}
+            </button>
+            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
+            <button
+              onClick={() => setIsFitWidth(!isFitWidth)}
+              title={isFitWidth ? "通常モード（ズーム有効）" : "画面幅に合わせる"}
+              style={{
+                padding: "5px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)",
+                background: isFitWidth ? "rgba(37, 99, 235, 0.4)" : "transparent",
+                color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                fontSize: 11, fontWeight: 700, transition: "all 0.2s"
+              }}
+              onMouseOver={e => e.currentTarget.style.background = isFitWidth ? "rgba(37, 99, 235, 0.5)" : "rgba(255,255,255,0.2)"}
+              onMouseOut={e => e.currentTarget.style.background = isFitWidth ? "rgba(37, 99, 235, 0.4)" : "transparent"}
+            >
+              <IconResize size={14} color="#fff" />
+              <span>{isFitWidth ? "幅固定中" : "幅に合わせる"}</span>
+            </button>
+            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 2, 
+              marginRight: 10, 
+              background: "rgba(255,255,255,0.1)", 
+              borderRadius: 4, 
+              padding: "2px 6px",
+              border: hoveredDate ? "2px solid #ef4444" : "none",
+              transition: "border 0.2s"
+            }}>
+              <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>－</button>
+              <span style={{ color: "#fff", fontSize: 11, minWidth: 32, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
+              <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>＋</button>
+            </div>
+            {perms.canManageRoles && (
+              <button onClick={() => setShowAdmin(true)} title="管理者設定" style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: showAdmin ? "rgba(255,255,255,0.2)" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"} onMouseOut={e => e.currentTarget.style.background = showAdmin ? "rgba(255,255,255,0.2)" : "transparent"}><IconGear size={14} color={showAdmin ? "#fff" : "rgba(255,255,255,0.7)"} /></button>
+            )}
+            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
+            <button onClick={() => supabase.auth.signOut()} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: "rgba(220,38,38,0.2)", color: "#fca5a5", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center" }}>ログアウト</button>
+          </div>
+        </div>
+
+        {/* Filters + legend - Fixed at top below bar */}
+        <div style={{
+          background: "var(--bg-app)",
+          borderBottom: "1px solid var(--border-color)",
+          padding: "6px 20px",
+          flexShrink: 0,
+          zIndex: 100
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <input type="text" placeholder="検索..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "4px 10px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, width: 150, background: "var(--bg-input)", color: "var(--text-main)" }} />
+            <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "4px 8px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }}>
+              <option value="">全タイプ</option>{types.map(t => <option key={t}>{t}</option>)}
+            </select>
+            <select value={filterWorker} onChange={e => setFilterWorker(e.target.value)} style={{ padding: "4px 8px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }}>
+              <option value="">全案件担当 (FE)</option>{workers.filter(w => w.sche_role === "field_engineer").map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
+            </select>
+            <div style={{ flex: 1 }} />
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>合計:<b style={{ color: "#3b82f6", minWidth: "2.5em", textAlign: "right" }}>{stats.total}</b></span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>完了:<b style={{ color: "#16a34a", minWidth: "2.5em", textAlign: "right" }}>{stats.done}</b></span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>未対応:<b style={{ color: "#f59e0b", minWidth: "2.5em", textAlign: "right" }}>{stats.pending}</b></span>
+          </div>
+          <Legend workers={workers.filter(w => w.sche_role === "field_engineer")} />
+        </div>
+
+        {/* Main content scroll container */}
+        <div style={{
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          position: "relative",
+          paddingBottom: 60, // Bottom tabs space
+          scrollbarGutter: "stable"
+        }}>
+          <div style={{
+            padding: "12px 20px",
+            width: isFitWidth ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "max-content"),
+            minWidth: isFitWidth ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "100%"),
+            boxSizing: "border-box",
+            transformOrigin: "top left",
+            transform: isFitWidth ? "none" : `scale(${zoom})`,
+            transition: "all 0.2s"
+          }}>
+            {view === "monthly" ? (
+              <MonthCalendar
+                tickets={filtered}
+                year={year} month={month}
+                workers={workers.filter(w => w.sche_role === "field_engineer")}
+                allWorkers={workers.filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))}
+                vacations={vacations}
+                onDayClick={openDaily}
+                onEdit={handleEdit}
+                onView={t => setViewingTicket({ ...t })}
+                onAdd={handleAdd}
+                isAdmin={perms.isAdmin}
+                theme={theme}
+                hoveredDate={hoveredDate}
+                setHoveredDate={setHoveredDate}
+                onReorder={(dateStr, workerId, fromId, toId) => {
+                  setTickets(prev => {
+                    const next = [...prev];
+                    const fromGlobalIdx = next.findIndex(t => t.id === fromId);
+                    if (fromGlobalIdx < 0) return prev;
+                    const [moved] = next.splice(fromGlobalIdx, 1);
+                    moved.date = dateStr;
+                    moved.person = workerId;
+
+                    if (toId && toId !== "end") {
+                      const newToIdx = next.findIndex(t => t.id === toId);
+                      if (newToIdx < 0) { next.push(moved); } else { next.splice(newToIdx, 0, moved); }
+                    } else {
+                      const workerTicketsToday = next.filter(t => t.date === dateStr && t.person === workerId);
+                      if (workerTicketsToday.length > 0) {
+                        const lastId = workerTicketsToday[workerTicketsToday.length - 1].id;
+                        const lastGlobalIdx = next.findIndex(t => t.id === lastId);
+                        next.splice(lastGlobalIdx + 1, 0, moved);
+                      } else {
+                        next.push(moved);
+                      }
+                    }
+                    return next;
+                  });
+                }}
+                onMoveTicket={(ticketId, newWorkerId, newDateStr) => {
+                  setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, person: newWorkerId, date: newDateStr || t.date } : t));
+                }}
+              />
+            ) : view === "pool" ? (
+              <ProcessingPool tickets={tickets} workers={workers.filter(w => w.sche_role === "field_engineer")} allWorkers={workers.filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))} onEdit={handleEdit} onDelete={handleDelete}
+                onAssign={(ticketId, date, workerId) => {
+                  setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, date, person: workerId } : t));
+                }} />
+            ) : selectedDate ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <button onClick={() => setView("monthly")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-accent)", fontSize: 13, fontWeight: 600 }}>◂ 月間に戻る</button>
+                  <div style={{ flex: 1 }} />
+                  <button onClick={prevDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>◂ 前日</button>
+                  <button onClick={nextDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>翌日 ▸</button>
+                </div>
+                <DailyDetail tickets={filtered} dateStr={selectedDate} workers={workers.filter(w => w.sche_role === "field_engineer")} allWorkers={workers.filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} onView={t => setViewingTicket({ ...t })} onSave={handleSave} vacations={vacations} onToggleVacation={toggleVacation} theme={theme} onReorder={(dateStr, workerId, fromId, toId) => {
+                  if (toId === "end") {
+                    setTickets(prev => {
+                      const next = [...prev];
+                      const fromGlobalIdx = next.findIndex(t => t.id === fromId);
+                      if (fromGlobalIdx < 0) return prev;
+                      const [moved] = next.splice(fromGlobalIdx, 1);
+                      const workerTicketsToday = next.filter(t => t.date === dateStr && t.person === workerId);
+                      if (workerTicketsToday.length > 0) {
+                        const lastId = workerTicketsToday[workerTicketsToday.length - 1].id;
+                        const lastGlobalIdx = next.findIndex(t => t.id === lastId);
+                        next.splice(lastGlobalIdx + 1, 0, moved);
+                      } else {
+                        next.push(moved);
+                      }
+                      return next;
+                    });
+                    return;
+                  }
+                  setTickets(prev => {
+                    const next = [...prev];
+                    const fromGlobalIdx = next.findIndex(t => t.id === fromId);
+                    const toGlobalIdx = next.findIndex(t => t.id === toId);
+                    if (fromGlobalIdx < 0 || toGlobalIdx < 0) return prev;
+                    const [moved] = next.splice(fromGlobalIdx, 1);
+                    const newToIdx = next.findIndex(t => t.id === toId);
+                    if (newToIdx < 0) { next.push(moved); } else { next.splice(newToIdx, 0, moved); }
+                    return next;
+                  });
+                }} onMoveTicket={(ticketId, newWorkerId) => {
+                  setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, person: newWorkerId } : t));
+                }} />
+              </>
+            ) : null}
+          </div>
+        </div>
+
+
+        {/* Month tabs (bottom, like spreadsheet) */}
+        <div className="glass" style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          background: "var(--bg-app)", borderTop: "1px solid var(--calendar-grid-border)",
+          display: "flex", alignItems: "center", padding: "0 8px",
+          boxShadow: "var(--shadow)", zIndex: 100,
+        }}>
+          <button onClick={() => setYear(y => y - 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "var(--text-sub)", fontWeight: 700 }}>◂年</button>
+          <button onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "var(--text-sub)", fontWeight: 700 }}>◂</button>
+          {MONTHS.map((m, i) => (
+            <button key={i} onClick={() => setMonth(i)} style={{
+              padding: "8px 12px", border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: month === i ? 900 : 700,
+              color: month === i ? "var(--text-accent)" : "var(--text-muted)",
+              background: "transparent",
+              borderTop: month === i ? "3px solid var(--text-accent)" : "3px solid transparent",
+              transition: "all 0.2s",
+              opacity: month === i ? 1 : 0.7
+            }}>{m}</button>
+          ))}
+          <button onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "var(--text-sub)", fontWeight: 700 }}>▸</button>
+          <button onClick={() => setYear(y => y + 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "var(--text-sub)", fontWeight: 700 }}>年▸</button>
+        </div>
+
+        {/* Modals */}
+        {viewingTicket && <TicketDetailModal perms={perms} ticket={viewingTicket} workers={workers} onClose={() => setViewingTicket(null)} onEdit={t => { setViewingTicket(null); handleEdit(t); }} onDelete={id => { setViewingTicket(null); handleDelete(id); }} />}
+        {editTicket && <TicketFormModal perms={perms} ticket={editTicket} isNew={isNew} onSave={handleSave} onClose={() => { setEditTicket(null); setIsNew(false); }} workers={workers} />}
+        {showAdmin && <AdminModal perms={perms} types={types} workers={workers} onSaveTypes={t => { setTypes(t); setShowAdmin(false); }} onSaveWorkers={w => { setWorkers(w); setShowAdmin(false); }} onClose={() => setShowAdmin(false)} />}
+      </div>
+    </ErrorBoundary>
   );
 }
