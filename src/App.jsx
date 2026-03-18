@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, Component } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef, Component } from "react";
 import { supabase } from "./supabase";
 import initialTicketsData from "./initialTickets.json";
 
@@ -68,6 +68,11 @@ const IconSun = ({ size = 18, color = "currentColor" }) => (
 const IconMoon = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
 );
+const IconLogout = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
 const IconResize = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
 );
@@ -85,15 +90,35 @@ const DEFAULT_TYPE_COLORS = {
 const STATUSES = ["", "フリー", "休暇"];
 const AREAS = ["北海道", "東北", "関東", "中部", "近畿", "中国", "四国", "九州"];
 const RESULTS = ["完了", "未完了", "キャンセル", "現地都合でキャンセル", "保留"];
-const PREFECTURES = ["北海道", "青森", "岩手", "宮城", "秋田", "山形", "福島", "茨城", "栃木", "群馬", "埼玉", "千葉", "東京", "神奈川", "新潟", "富山", "石川", "福井", "山梨", "長野", "岐阜", "静岡", "愛知", "三重", "滋賀", "京都", "大阪", "兵庫", "奈良", "和歌山", "鳥取", "島根", "岡山", "広島", "山口", "徳島", "香川", "愛媛", "高知", "福岡", "佐賀", "長崎", "熊本", "大分", "宮崎", "鹿児島", "沖縄"];
-
-const getPrefColor = (pref) => {
-  if (!pref) return "#475569";
-  const colors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#d97706", "#059669", "#4f46e5"];
-  let hash = 0;
-  for (let i = 0; i < pref.length; i++) hash = pref.charCodeAt(i) + ((hash << 5) - hash);
-  return colors[Math.abs(hash) % colors.length];
+const PREFECTURES = ["23", "都下", "北海道", "青森", "岩手", "宮城", "秋田", "山形", "福島", "茨城", "栃木", "群馬", "埼玉", "千葉", "東京", "神奈川", "新潟", "富山", "石川", "福井", "山梨", "長野", "岐阜", "静岡", "愛知", "三重", "滋賀", "京都", "大阪", "兵庫", "奈良", "和歌山", "鳥取", "島根", "岡山", "広島", "山口", "徳島", "香川", "愛媛", "高知", "福岡", "佐賀", "長崎", "熊本", "大分", "宮崎", "鹿児島", "沖縄"];
+const KUBUN_OPTIONS = ["FTS", "委託", "その他"];
+const kubunColors = {
+  "FTS":  { border: "#8b5cf6", bg: "rgba(139,92,246,0.08)", text: "#7c3aed" },
+  "委託": { border: "#84cc16", bg: "rgba(132,204,22,0.08)", text: "#65a30d" },
+  "その他": { border: "#94a3b8", bg: "transparent", text: "#64748b" },
 };
+
+// 地域カラーマップ（県別・エリア別）
+const TOHOKU_PREFS = ["青森", "岩手", "宮城", "秋田", "山形", "福島"];
+const HOKKAITO_PREFS = ["北関東"];
+const KANTO_NORTH_PREFS = ["茨城", "群馬", "栃木"];
+const CHUBU_PREFS = ["新潟", "富山", "石川", "福井", "山梨", "長野", "岐阜", "静岡", "愛知", "三重"];
+
+const getRegionColor = (area, prefecture) => {
+  if (area === "23" || prefecture === "23") return "#ef4444";
+  if (area === "都下" || prefecture === "都下") return "#ec4899";
+  if (!prefecture) return "#64748b";
+  if (prefecture === "神奈川") return "#22d3ee";
+  if (prefecture === "埼玉") return "#22c55e";
+  if (prefecture === "千葉") return "#eab308";
+  if (prefecture === "北海道") return "#f97316";
+  if (TOHOKU_PREFS.includes(prefecture)) return "#3b82f6";
+  if (KANTO_NORTH_PREFS.includes(prefecture)) return "#84cc16";
+  if (CHUBU_PREFS.includes(prefecture)) return "#fb923c";
+  return "#64748b";
+};
+// 後方互換
+const getPrefColor = (pref) => getRegionColor("", pref);
 // --- 障害区分定義 ---
 const FAULT_CATEGORIES = [
   "デバイス", "扉関連", "点検、清掃", "電話・Modem関連", "F-rents関連",
@@ -149,6 +174,7 @@ const INITIAL_WORKERS = [
 ];
 
 const ALL_COLS = [
+  { key: "kubun", label: "区分", w: 62, type: "select", options: KUBUN_OPTIONS },
   { key: "type", label: "タイプ", w: 62, type: "select", options: TYPES },
   { key: "box", label: "BOX", w: 53, type: "text" },
   { key: "unit", label: "号機", w: 44, type: "text" },
@@ -172,7 +198,7 @@ const ALL_COLS = [
 ];
 
 const emptyTicket = () => ({
-  id: Math.random().toString(36).substring(2, 11), date: "", type: "", box: "", unit: "", property: "", category: "",
+  id: Math.random().toString(36).substring(2, 11), date: "", kubun: "", type: "", box: "", unit: "", property: "", category: "",
   work: "", time: "", person: "", area: "", prefecture: "", travel: "", companion: "",
   requestNo: "", timeSlot: "", course: "", result: "", responseDate: "",
   faultCategory: "", faultLevel: "", notes: "", createdBy: ""
@@ -438,18 +464,38 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
   }, [ticketsByDate, workers, vacations]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid var(--calendar-grid-border)", borderRadius: 4, overflow: "hidden", background: "var(--bg-app)" }}>
-      {/* DOW header */}
-      <div className="glass" style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", borderBottom: "1px solid var(--calendar-grid-border)", position: "sticky", top: 0, zIndex: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid var(--calendar-grid-border)", borderRadius: 10, overflow: "clip", background: "var(--glass-bg)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "var(--shadow-glass)" }}>
+      {/* DOW header – sticky, individual glass pills */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+        position: "sticky", top: 0, zIndex: 20,
+        background: "var(--glass-bg)",
+        backdropFilter: "blur(24px) saturate(2)",
+        WebkitBackdropFilter: "blur(24px) saturate(2)",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)",
+        borderBottom: "1px solid var(--glass-border)",
+        padding: "5px 3px",
+        gap: 3,
+      }}>
         {DOW_HEADERS.map((d, i) => {
           const isSat = i === 5, isSun = i === 6;
           return (
             <div key={i} style={{
-              padding: "6px 0", textAlign: "center", fontSize: 12, fontWeight: 800,
+              padding: "5px 0", textAlign: "center", fontSize: 11, fontWeight: 900,
               letterSpacing: 2,
-              color: isSun ? "#dc2626" : isSat ? "#2563eb" : "var(--text-main)",
-              background: isSun ? "var(--bg-alt)" : isSat ? "var(--bg-alt)" : "var(--bg-alt)",
-              borderRight: i < 6 ? "1px solid var(--calendar-cell-border)" : "none",
+              color: isSun ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-sub)",
+              borderRadius: 6,
+              background: isSun
+                ? "rgba(239,68,68,0.1)"
+                : isSat
+                  ? "rgba(37,99,235,0.08)"
+                  : "rgba(148,163,184,0.06)",
+              border: isSun
+                ? "1px solid rgba(239,68,68,0.15)"
+                : isSat
+                  ? "1px solid rgba(37,99,235,0.12)"
+                  : "1px solid var(--glass-border)",
+              backdropFilter: "blur(8px)",
             }}>{d}</div>
           );
         })}
@@ -472,80 +518,74 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
             const isHolidayDay = !!holidayName;
             const { withTickets, noTickets, onVacation, unassignedTickets, total } = buildDayData(cell.dateStr);
             const isHovered = hoveredDate === cell.dateStr;
+            // 割当状態の判定
+            const hasUnassigned = unassignedTickets.length > 0;
+            const hasAssigned = withTickets.length > 0;
+            const isFullyAssigned = total > 0 && !hasUnassigned;
             return (
-              <div key={ci} 
+              <div key={ci}
                 className={isToday ? "today-premium" : ""}
                 title={holidayName ? holidayName : ""}
                 onMouseEnter={() => setHoveredDate(cell.dateStr)}
                 onMouseLeave={() => setHoveredDate(null)}
                 style={{
                   borderRight: ci < 6 ? "1px solid var(--calendar-cell-border)" : "none",
-                  background: isToday ? "var(--bg-today)" : (isSun || isHolidayDay) ? "var(--bg-sun)" : isSat ? "var(--bg-sat)" : "var(--bg-app)",
+                  background: isToday
+                    ? "linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.10) 100%)"
+                    : (isSun || isHolidayDay)
+                      ? "rgba(239,68,68,0.05)"
+                      : isSat
+                        ? "rgba(37,99,235,0.04)"
+                        : "rgba(255,255,255,0.02)",
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
                   padding: 2,
                   display: "flex", flexDirection: "column",
                   minHeight: 140,
-                  transition: "background 0.2s, transform 0.1s",
-                  boxShadow: isToday ? "inset 0 0 10px rgba(59,130,246,0.1)" : "none",
-                  outline: isHovered ? "2px solid #ef4444" : "none",
+                  transition: "background 0.2s, outline 0.15s, box-shadow 0.2s",
+                  boxShadow: isToday
+                    ? "inset 0 0 0 1.5px rgba(251,191,36,0.5), inset 0 0 16px rgba(245,158,11,0.08)"
+                    : isHovered
+                      ? "inset 0 0 0 2px rgba(139,92,246,0.55), 0 0 12px rgba(139,92,246,0.12)"
+                      : "none",
+                  outline: "none",
                   zIndex: isHovered ? 5 : 1,
                 }}
               >
-                {/* Day number + count + unassigned */}
+                {/* Day number + count + add button */}
                 <div style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "2px 4px",
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "3px 4px",
                   cursor: "pointer",
                   borderBottom: "1px solid var(--border-light)"
                 }} onClick={() => onDayClick(cell.dateStr)}>
                   <span style={{
-                    fontSize: 12, fontWeight: 900,
-                    width: 24, height: 24,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: isToday ? "var(--accent-today)" : "transparent",
-                    color: isToday 
-                      ? ((isSun || isHolidayDay) ? (theme === 'dark' ? "#fda4af" : "#fff") : isSat ? (theme === 'dark' ? "#93c5fd" : "#fff") : "#fff")
-                      : ((isSun || isHolidayDay) ? "#dc2626" : isSat ? "#2563eb" : "var(--text-main)"),
-                    borderRadius: "100%",
+                    fontSize: 14, fontWeight: 900,
                     lineHeight: 1,
                     flexShrink: 0,
-                    boxShadow: isToday ? "0 0 6px rgba(6, 182, 212, 0.35)" : "none",
+                    padding: "2px 0",
+                    marginRight: 4,
+                    letterSpacing: "-0.02em",
+                    transition: "color 0.2s",
+                    color: isToday
+                      ? "#f59e0b"
+                      : (isSun || isHolidayDay) ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-main)",
+                    borderBottom: isToday ? "2px solid #f59e0b" : "2px solid transparent",
                   }}>{cell.day}</span>
-                  {total > 0 && <span style={{ fontSize: 9, color: "var(--text-main)", fontWeight: 800, opacity: 0.8 }}>{total}件</span>}
-                  <button onClick={e => { e.stopPropagation(); onAdd(cell.dateStr); }} title="追加" style={{ background: "none", border: "1px solid var(--border-color)", borderRadius: 3, cursor: "pointer", padding: "0px 1px", display: "flex", alignItems: "center", lineHeight: 1, transition: "background 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.background = "#dbeafe"}
+                  {total > 0 && <span style={{ fontSize: 9, color: "var(--text-main)", fontWeight: 800, opacity: 0.7 }}>{total}件</span>}
+                  {hasUnassigned && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 900, color: "#ef4444",
+                      background: "rgba(239,68,68,0.1)", borderRadius: 4,
+                      padding: "1px 4px", border: "1px solid rgba(239,68,68,0.25)",
+                    }}>{unassignedTickets.length}未</span>
+                  )}
+                  <button onClick={e => { e.stopPropagation(); onAdd(cell.dateStr); }} title="追加" style={{ background: "none", border: "1px solid var(--border-color)", borderRadius: 3, cursor: "pointer", padding: "0px 1px", display: "flex", alignItems: "center", lineHeight: 1, transition: "background 0.15s", marginLeft: "auto" }}
+                    onMouseOver={e => e.currentTarget.style.background = "rgba(219,234,254,0.8)"}
                     onMouseOut={e => e.currentTarget.style.background = "none"}>
                     <IconPlus size={10} color="#2563eb" />
                   </button>
                 </div>
-
-                {/* Status Badges line */}
-                {(unassignedTickets.length > 0 || noTickets.length > 0) && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 4px", flexWrap: "wrap", borderBottom: (unassignedTickets.length > 0 || noTickets.length > 0) ? "1px solid var(--border-light)" : "none", marginBottom: 2 }}>
-                    {unassignedTickets.length > 0 && (
-                      <span style={{ 
-                        width: 18, height: 18, borderRadius: "50%", 
-                        background: "#ef4444", color: "#fff", 
-                        display: "inline-flex", alignItems: "center", justifyContent: "center", 
-                        fontSize: 10, fontWeight: 900, 
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-                        border: isHovered ? "2px solid #fff" : "none"
-                      }} title="未対応チケットあり">{unassignedTickets.length}</span>
-                    )}
-                    {noTickets.length > 0 && (
-                      <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                        {noTickets.map(({ worker: w }) => (
-                          <div key={w.id} style={{ display: "inline-block", cursor: "pointer" }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.onWorkerMenu) window.onWorkerMenu(e.clientX, e.clientY, String(w.id), w.name, cell.dateStr);
-                            }}>
-                            <UserAvatar user={w} size={18} style={{ cursor: "pointer", border: "1px solid var(--border-color)" }} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Unassigned tickets rows */}
                 {unassignedTickets.length > 0 && (
@@ -555,19 +595,26 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                       const tc = typeColors[t.type] || typeColors["その他"];
                       return (
                         <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
-                          style={{ padding: "4px 6px", borderTop: i === 0 ? "none" : "1px solid var(--border-light)", background: tc.bg, cursor: "pointer", fontSize: 11 }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", rowGap: 2, columnGap: 6, lineHeight: 1.2 }}>
-                            <div style={{ fontSize: 11, fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
-                            <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: "var(--text-main)" }}>{t.property}</div>
-                            {t.timeSlot && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 800 }}>{t.timeSlot}</div>}
+                          style={{ padding: "4px 5px", borderTop: i === 0 ? "none" : "1px solid var(--border-light)", background: "var(--bg-body)", cursor: "pointer" }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginBottom: 2 }}>
+                            {t.kubun && kubunColors[t.kubun] && (
+                              <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun].text, border: `1px solid ${kubunColors[t.kubun].border}` }}>{t.kubun}</span>
+                            )}
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc.text, border: `1px solid ${tc.badge}` }}>{t.type}</span>
+                            {t.unit && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
+                            {t.property && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
                           </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "var(--text-sub)", marginTop: 2, opacity: 0.9, lineHeight: 1.2 }}>
-                            <div style={{ color: "var(--text-main)", fontWeight: 800, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                              {t.time && <span style={{ fontWeight: 800, color: "var(--text-main)" }}>{formatExcelTime(t.time)}</span>}
-                              <span>{t.area}</span>
-                              <span style={{ color: getPrefColor(t.prefecture), fontWeight: 800 }}>{t.prefecture}</span>
-                            </div>
+                          {t.work && <div style={{ fontSize: 10, color: "var(--text-sub)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginTop: 2 }}>
+                            {t.time && formatExcelTime(t.time) && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#d97706", border: "1px solid rgba(245,158,11,0.4)" }}>{formatExcelTime(t.time)}</span>}
+                            {t.area && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.area}</span>}
+                            {t.prefecture && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.prefecture}</span>}
+                            {t.timeSlot && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#6366f1", border: "1px solid rgba(99,102,241,0.4)" }}>{t.timeSlot}</span>}
+                            {typeof t.companion === "string" && t.companion && (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "var(--text-sub)", border: "1px solid rgba(128,128,128,0.3)" }}>
+                                <IconPeople size={9} color="var(--text-muted)" />{t.companion.split(/[\s　]+/)[0]}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -660,34 +707,32 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                                 }}
                                 onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))} style={{
                                   display: "flex", flexDirection: "column", gap: 2,
-                                  padding: "4px 6px", borderTop: isDragTarget ? "2px solid #2563eb" : "1px solid var(--border-light)",
-                                  background: tc.bg, cursor: "grab", minHeight: 40,
-                                  fontSize: 10, lineHeight: "1.2", overflow: "hidden",
+                                  padding: "4px 5px", borderTop: isDragTarget ? "2px solid #2563eb" : "1px solid var(--border-light)",
+                                  background: "var(--bg-body)", cursor: "grab", minHeight: 32,
+                                  lineHeight: "1.2", overflow: "hidden",
                                   borderRadius: 2, margin: "1px 2px"
                                 }}
                                 onMouseOver={e => e.currentTarget.style.filter = "brightness(0.93)"}
                                 onMouseOut={e => e.currentTarget.style.filter = "none"}>
-                                <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-main)", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: 2, marginBottom: 2 }}>
-                                  {w.name}
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginBottom: 2 }}>
+                                  {t.kubun && kubunColors[t.kubun] && (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun].text, border: `1px solid ${kubunColors[t.kubun].border}` }}>{t.kubun}</span>
+                                  )}
+                                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc.text, border: `1px solid ${tc.badge}` }}>{t.type}</span>
+                                  {t.unit && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
+                                  {t.property && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
                                 </div>
-                                <div style={{ display: "flex", flexWrap: "wrap", rowGap: 2, columnGap: 6, lineHeight: 1.2 }}>
-                                  <div style={{ fontSize: 11, fontWeight: 900, color: tc.text }}>{t.type} {t.unit}</div>
-                                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: "var(--text-main)" }}>{t.property}</div>
-                                  {t.timeSlot && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 800 }}>{t.timeSlot}</div>}
-                                </div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "var(--text-sub)", marginTop: 2, opacity: 0.9, lineHeight: 1.2 }}>
-                                  <div style={{ color: "var(--text-main)", fontWeight: 800, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>
-                                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, fontSize: 9 }}>
-                                    {t.time && <span style={{ fontWeight: 800, color: "var(--text-main)" }}>{formatExcelTime(t.time)}</span>}
-                                    {typeof t.companion === "string" && (
-                                      <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", gap: 2, background: "rgba(128,128,128,0.15)", padding: "1px 4px", borderRadius: 4 }}>
-                                        <IconPeople size={10} color="var(--text-muted)" />
-                                        <span style={{ fontWeight: 800, fontSize: 10, color: "var(--text-main)" }}>{t.companion.split(/[\s　]+/)[0]}</span>
-                                      </span>
-                                    )}
-                                    <span>{t.area}</span>
-                                    <span style={{ color: getPrefColor(t.prefecture), fontWeight: 800 }}>{t.prefecture}</span>
-                                  </div>
+                                {t.work && <div style={{ fontSize: 10, color: "var(--text-sub)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>}
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginTop: 2 }}>
+                                  {t.time && formatExcelTime(t.time) && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#d97706", border: "1px solid rgba(245,158,11,0.4)" }}>{formatExcelTime(t.time)}</span>}
+                                  {t.area && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.area}</span>}
+                                  {t.prefecture && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.prefecture}</span>}
+                                  {t.timeSlot && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#6366f1", border: "1px solid rgba(99,102,241,0.4)" }}>{t.timeSlot}</span>}
+                                  {typeof t.companion === "string" && t.companion && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "var(--text-sub)", border: "1px solid rgba(128,128,128,0.3)" }}>
+                                      <IconPeople size={9} color="var(--text-muted)" />{t.companion.split(/[\s　]+/)[0]}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -857,27 +902,86 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
         if (isUnassignedRow && wt.length === 0) return null;
 
         return (
-          <div key={w.id} style={{
-            marginBottom: 4, border: isUnassignedRow ? "1px dashed var(--color-danger-dark)" : "1px solid var(--border-color)",
-            borderRadius: 4,
-            display: "flex", overflow: "hidden",
-            opacity: 1,
+          <div key={w.id} className="worker-row-assigned" style={{
+            marginBottom: 8,
+            borderRadius: 10,
+            overflow: "hidden",
+            border: isUnassignedRow
+              ? "1.5px dashed rgba(239,68,68,0.6)"
+              : isVac
+                ? "1.5px solid rgba(234,179,8,0.4)"
+                : wt.length > 0
+                  ? `1.5px solid ${w.color}50`
+                  : "1px solid var(--border-color)",
+            background: "var(--glass-bg)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            boxShadow: isUnassignedRow
+              ? `0 0 0 1px rgba(239,68,68,0.1), 0 4px 16px rgba(239,68,68,0.1), 0 1px 4px rgba(0,0,0,0.06)`
+              : wt.length > 0
+                ? `0 0 0 1px ${w.color}12, 0 4px 16px ${w.color}14, 0 1px 4px rgba(0,0,0,0.05)`
+                : "0 1px 4px rgba(0,0,0,0.04)",
           }}>
-            <div style={{ width: 5, background: isUnassignedRow ? "var(--color-danger-dark)" : (isVac ? "var(--text-muted)" : w.color), flexShrink: 0 }} />
-            <div style={{ flex: 1, background: isUnassignedRow ? "var(--bg-body)" : "var(--bg-app)", overflow: "hidden" }}>
+            <div style={{ flex: 1, overflow: "hidden" }}>
               <div style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "5px 10px",
-                background: isUnassignedRow ? "rgba(239, 68, 68, 0.1)" : (isVac ? "rgba(234, 179, 8, 0.05)" : wt.length > 0 ? `${w.color}15` : "var(--bg-alt)"),
+                display: "flex", alignItems: "center", gap: 8, padding: "6px 12px",
                 borderBottom: wt.length > 0 ? "1px solid var(--border-light)" : "none",
+                borderLeft: `3px solid ${isUnassignedRow ? "#ef4444" : isVac ? "#eab308" : wt.length > 0 ? w.color : "var(--border-light)"}`,
+                background: isUnassignedRow
+                  ? "linear-gradient(90deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%)"
+                  : isVac
+                    ? "linear-gradient(90deg, rgba(234,179,8,0.1) 0%, rgba(234,179,8,0.03) 100%)"
+                    : wt.length > 0
+                      ? `linear-gradient(90deg, ${w.color}18 0%, ${w.color}05 100%)`
+                      : "transparent",
               }}>
-                <UserAvatar 
-                  user={isUnassignedRow ? { name: "？", color: "var(--color-danger-dark)" } : w} 
-                  size={28} 
-                  style={{ color: "var(--bg-app)" }}
-                />
-                <span style={{ fontWeight: 700, fontSize: 13, color: isUnassignedRow ? "var(--color-danger-dark)" : (isVac ? "var(--text-muted)" : (theme === "dark" ? "var(--text-main)" : w.color)) }}>{isUnassignedRow ? "未定 (Unassigned)" : w.name}</span>
-                {isVac && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 3, background: "var(--color-warning-light)", color: "var(--color-warning-dark)", fontWeight: 700 }}>🌴 休暇</span>}
-                {!isVac && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{wt.length}件</span>}
+                {/* Assignment status avatar */}
+                <div style={{
+                  width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 13, fontWeight: 800, lineHeight: 1,
+                  color: isUnassignedRow ? "#ef4444" : isVac ? "#d97706" : "#fff",
+                  background: isUnassignedRow
+                    ? "rgba(239,68,68,0.12)"
+                    : isVac
+                      ? "rgba(234,179,8,0.18)"
+                      : wt.length > 0
+                        ? w.color
+                        : `${w.color}22`,
+                  border: isUnassignedRow
+                    ? "1.5px dashed rgba(239,68,68,0.6)"
+                    : isVac
+                      ? "1.5px solid rgba(234,179,8,0.5)"
+                      : wt.length > 0
+                        ? `2px solid ${w.color}`
+                        : `1.5px dashed ${w.color}60`,
+                  boxShadow: wt.length > 0 && !isUnassignedRow && !isVac
+                    ? `0 0 8px ${w.color}50, 0 2px 4px rgba(0,0,0,0.1)`
+                    : isUnassignedRow ? "0 0 6px rgba(239,68,68,0.4)" : "none",
+                  opacity: wt.length === 0 && !isUnassignedRow && !isVac ? 0.6 : 1,
+                  transition: "all 0.2s",
+                }} className={isUnassignedRow ? "unassigned-pulse" : ""}>
+                  {isUnassignedRow ? "?" : (w.name?.charAt(0) || "?")}
+                </div>
+                <span style={{
+                  fontWeight: wt.length > 0 || isUnassignedRow ? 700 : 500,
+                  fontSize: 13,
+                  letterSpacing: "-0.01em",
+                  color: isUnassignedRow ? "var(--color-danger-dark)" : isVac ? "#d97706" : wt.length > 0 ? (theme === "dark" ? "var(--text-main)" : w.color) : "var(--text-muted)",
+                  opacity: isVac && wt.length === 0 ? 0.7 : 1,
+                }}>{isUnassignedRow ? "未割当" : w.name}</span>
+                {isVac && <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: "rgba(234,179,8,0.18)", color: "#d97706", fontWeight: 700, border: "1px solid rgba(234,179,8,0.3)" }}>休暇</span>}
+                {!isVac && wt.length > 0 && (
+                  <span style={{
+                    fontSize: 10, padding: "2px 7px", borderRadius: 10, fontWeight: 800,
+                    background: isUnassignedRow ? "rgba(239,68,68,0.12)" : `${w.color}18`,
+                    color: isUnassignedRow ? "var(--color-danger-dark)" : w.color,
+                    border: `1px solid ${isUnassignedRow ? "rgba(239,68,68,0.25)" : `${w.color}35`}`,
+                  }}>{wt.length}件</span>
+                )}
+                {!isVac && wt.length === 0 && !isUnassignedRow && (
+                  <span style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.6 }}>未割当</span>
+                )}
                 <div style={{ flex: 1 }} />
                 {!isUnassignedRow && (
                   <button onClick={() => {
@@ -886,17 +990,20 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                     }
                     onToggleVacation && onToggleVacation(dateStr, w.id);
                   }} style={{
-                    padding: "4px 12px", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 700,
-                    border: isVac ? "2px solid #eab308" : "1px solid var(--border-color)",
-                    background: isVac ? "#fef08a" : "var(--bg-app)",
+                    padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700,
+                    border: isVac ? "1px solid rgba(234,179,8,0.5)" : "1px solid var(--border-color)",
+                    background: isVac ? "rgba(254,240,138,0.9)" : "var(--glass-bg)",
                     color: isVac ? "#854d0e" : "var(--text-sub)",
-                    transition: "all 0.15s ease",
+                    transition: "all 0.2s ease",
+                    backdropFilter: "blur(8px)",
                   }}
-                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "var(--bg-alt)"; e.currentTarget.style.transform = "scale(1.05)"; }}
-                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "#fef08a" : "var(--bg-app)"; e.currentTarget.style.transform = "scale(1)"; }}
+                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "var(--bg-alt)"; e.currentTarget.style.transform = "scale(1.04)"; }}
+                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "rgba(254,240,138,0.9)" : "var(--glass-bg)"; e.currentTarget.style.transform = "scale(1)"; }}
                   >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="var(--text-muted)" /> 休暇</>}</button>
                 )}
-                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "none", border: "1px solid var(--border-color)", borderRadius: 3, cursor: "pointer", color: "var(--text-muted)", fontSize: 10, padding: "2px 8px", fontWeight: 600 }}>＋</button>
+                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "var(--glass-bg)", border: "1px solid var(--border-color)", borderRadius: 6, cursor: "pointer", color: "var(--text-muted)", fontSize: 10, padding: "3px 9px", fontWeight: 700, transition: "all 0.15s" }}
+                  onMouseOver={e => { e.currentTarget.style.background = "var(--bg-alt)"; }}
+                  onMouseOut={e => { e.currentTarget.style.background = "var(--glass-bg)"; }}>＋</button>
               </div>
               {wt.length > 0 && (
                 <div style={{ overflowX: "auto", overflowY: "visible" }}>
@@ -954,6 +1061,9 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                               if (c.key === "result" && t.result && !isDone) bg = resultColors[t.result] || "transparent";
                               if (c.key === "result" && isDone) { bg = "var(--border-color)"; clr = "var(--text-muted)"; }
                               if (c.key === "faultLevel" && t.faultLevel) { bg = FAULT_LEVEL_COLORS[t.faultLevel] || "transparent"; clr = "#fff"; }
+                              if (c.key === "area" || c.key === "prefecture") {
+                                clr = getRegionColor(t.area, t.prefecture);
+                              }
                               const isWork = c.key === "work";
                               const isEditing = editingCell && editingCell.id === t.id && editingCell.key === c.key;
                               const cellStyle = {
@@ -1019,7 +1129,7 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
 
                               return (
                                 <td key={c.key} style={cellStyle} title={c.type !== "auto" && c.key !== "result" ? "クリックして編集" : ""}
-                                  onMouseOver={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = "#f8fafc"; }}
+                                  onMouseOver={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = "var(--bg-hover, rgba(139,92,246,0.07))"; }}
                                   onMouseOut={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = cellStyle.background; }}
                                   onClick={e => { e.stopPropagation(); if (c.type !== "auto" && c.key !== "result") setEditingCell({ id: t.id, key: c.key }); }}>
                                   {c.key === "work" ? (
@@ -1795,25 +1905,128 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
 }
 
 // --- Legend ---
-function Legend({ workers }) {
+function Legend({ workers, hoveredDate, tickets }) {
+  const dayTickets = hoveredDate ? tickets.filter(t => t.date === hoveredDate) : [];
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "6px 0" }}>
       <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>対応者:</span>
-      {workers.map(w => (
-        <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10 }}>
-          <UserAvatar user={w} size={18} />
-          <span style={{ color: "var(--text-main)", fontWeight: 600 }}>{w.name}</span>
-        </span>
-      ))}
-      <div style={{ width: 1, height: 14, background: "var(--border-light)", margin: "0 4px" }} />
-      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>タイプ:</span>
-      {Object.entries(typeColors).map(([k, v]) => (
-        <span key={k} style={{ fontSize: 9, padding: "1px 6px", borderRadius: 2, background: v.bg, color: v.text, fontWeight: 700, border: `1px solid ${v.badge}` }}>{k}</span>
-      ))}
+      {workers.map(w => {
+        const wTickets = dayTickets.filter(t => String(t.person) === String(w.id));
+        const hasAssigned = wTickets.length > 0;
+        let borderColor = "transparent";
+        if (hoveredDate && hasAssigned) borderColor = "#3b82f6";
+        return (
+          <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10 }}>
+            <UserAvatar user={w} size={22} style={{
+              border: `2px solid ${borderColor}`,
+              boxShadow: hasAssigned && hoveredDate ? `0 0 6px ${borderColor}40` : "none",
+              transition: "border 0.2s, box-shadow 0.2s"
+            }} />
+            <span style={{ color: "var(--text-main)", fontWeight: 600 }}>{w.name}</span>
+          </span>
+        );
+      })}
     </div>
   );
 }
 // --- Login Screen ---
+// --- Floating Mini Calendar Widget ---
+function MiniCalendarWidget({ onNavigate, todayStr, initialDate }) {
+  const now = new Date(initialDate + "T00:00:00");
+  const [calYear, setCalYear] = useState(now.getFullYear());
+  const [calMonth, setCalMonth] = useState(now.getMonth());
+  const [pos, setPos] = useState({ x: 20, y: 110 });
+  const [dragging, setDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const weeks = useMemo(() => getMonthCalendar(calYear, calMonth), [calYear, calMonth]);
+
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    setDragging(true);
+    setDragOffset({ x: e.clientX - pos.x, y: e.clientY - pos.y });
+  }, [pos]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const move = (e) => setPos({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+    const up = () => setDragging(false);
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+    return () => { document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up); };
+  }, [dragging, dragOffset]);
+
+  const prevM = () => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); };
+  const nextM = () => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); };
+
+  return (
+    <div style={{
+      position: "fixed", left: pos.x, top: pos.y, zIndex: 8000,
+      width: 220,
+      background: "var(--glass-bg)",
+      backdropFilter: "blur(24px) saturate(1.8)",
+      WebkitBackdropFilter: "blur(24px) saturate(1.8)",
+      border: "1px solid var(--glass-border)",
+      borderRadius: 12,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)",
+      overflow: "hidden",
+      userSelect: "none",
+    }}>
+      {/* Drag handle / header */}
+      <div onMouseDown={handleMouseDown} style={{
+        cursor: dragging ? "grabbing" : "grab",
+        padding: "8px 10px",
+        background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(99,102,241,0.1))",
+        borderBottom: "1px solid var(--glass-border)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={prevM} style={{ background: "none", border: "none", color: "var(--text-accent)", cursor: "pointer", fontSize: 14, padding: "0 2px", fontWeight: 700 }}>‹</button>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-main)", minWidth: 80, textAlign: "center" }}>{calYear}年{calMonth + 1}月</span>
+          <button onClick={nextM} style={{ background: "none", border: "none", color: "var(--text-accent)", cursor: "pointer", fontSize: 14, padding: "0 2px", fontWeight: 700 }}>›</button>
+        </div>
+        <button onClick={() => onNavigate(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "0 2px", lineHeight: 1 }}>
+          <IconX size={12} color="var(--text-muted)" />
+        </button>
+      </div>
+      {/* DOW mini */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", padding: "4px 4px 0" }}>
+        {DOW_HEADERS.map((d, i) => (
+          <div key={i} style={{
+            textAlign: "center", fontSize: 9, fontWeight: 800, padding: "2px 0",
+            color: i === 6 ? "var(--color-sun)" : i === 5 ? "var(--color-sat)" : "var(--text-muted)",
+          }}>{d}</div>
+        ))}
+      </div>
+      {/* Day grid */}
+      <div style={{ padding: "2px 4px 6px" }}>
+        {weeks.map((week, wi) => (
+          <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
+            {week.map((cell, ci) => {
+              if (!cell) return <div key={ci} />;
+              const isToday = cell.dateStr === todayStr;
+              const isSun = ci === 6, isSat = ci === 5;
+              return (
+                <button key={ci} onClick={() => onNavigate(cell.dateStr)} style={{
+                  width: "100%", aspectRatio: "1", border: "none", borderRadius: 5, cursor: "pointer",
+                  fontSize: 10, fontWeight: isToday ? 900 : 600,
+                  background: isToday ? "var(--accent-today)" : "transparent",
+                  color: isToday ? "#fff" : isSun ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-main)",
+                  transition: "background 0.15s, transform 0.1s",
+                  padding: 0,
+                }}
+                  onMouseOver={e => { if (!isToday) e.currentTarget.style.background = "rgba(37,99,235,0.12)"; e.currentTarget.style.transform = "scale(1.15)"; }}
+                  onMouseOut={e => { if (!isToday) e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = "scale(1)"; }}
+                >{cell.day}</button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
@@ -1882,40 +2095,49 @@ const GlobalStyles = () => (
   <style>{`
     :root {
       /* Light Mode (Default) */
-      --bg-body: #eef2f6;
-      --bg-app: #ffffff;
-      --bg-header: #0f172a;
+      --bg-body: #eef2f7;
+      --bg-body-gradient: linear-gradient(135deg, #e8f0fe 0%, #f0e8ff 40%, #e0f2fe 100%);
+      --bg-app: rgba(255, 255, 255, 0.85);
+      --bg-header: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --bg-header-solid: #0f172a;
       --bg-header-text: #ffffff;
-      --bg-alt: #f8fafc;
-      --bg-input: #ffffff;
-      --bg-modal-overlay: rgba(0,0,0,0.5);
-      --border-color: #cbd5e1;
-      --border-light: #e2e8f0;
+      --bg-alt: rgba(248, 250, 252, 0.9);
+      --bg-hover: rgba(139,92,246,0.06);
+      --bg-input: rgba(255, 255, 255, 0.9);
+      --bg-modal-overlay: rgba(15, 23, 42, 0.6);
+      --border-color: rgba(203, 213, 225, 0.8);
+      --border-light: rgba(226, 232, 240, 0.7);
       --text-main: #1e293b;
       --text-sub: #475569;
       --text-muted: #64748b;
       --text-accent: #2563eb;
       --text-on-dark: #ffffff;
       --color-danger-dark: #ef4444;
-      --color-warning-light: #fef3c7;
+      --color-warning-light: rgba(254, 243, 199, 0.9);
       --color-warning-dark: #92400e;
-      --shadow: 0 4px 15px rgba(0,0,0,0.05);
-      --calendar-grid-border: #cbd5e1;
-      --calendar-cell-border: white;
-      --bg-sat: #f1f7ff;
-      --bg-sun: #fff1f2;
-      --bg-today: #f0f9ff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.6);
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 10px -3px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.5);
+      --shadow-glass: 0 8px 32px rgba(31,38,135,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+      --calendar-grid-border: rgba(203, 213, 225, 0.6);
+      --calendar-cell-border: rgba(255,255,255,0.8);
+      --bg-sat: rgba(241, 247, 255, 0.95);
+      --bg-sun: rgba(255, 241, 242, 0.95);
+      --bg-today: rgba(240, 249, 255, 0.98);
       --accent-today: #0ea5e9;
-      --glass-bg: rgba(255, 255, 255, 0.9);
-      --glass-border: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --glass-bg-panel: rgba(255, 255, 255, 0.65);
+      --color-sat: #1d4ed8;
+      --color-sun: #dc2626;
 
       /* Type Colors - Light */
-      --type-bg-inspect: #fff7ed; --type-badge-inspect: #f97316; --type-text-inspect: #9a3412;
-      --type-bg-repair: #f0f9ff; --type-badge-repair: #0ea5e9; --type-text-repair: #0c4a6e;
-      --type-bg-install: #f0fdf4; --type-badge-install: #22c55e; --type-text-install: #166534;
-      --type-bg-remove: #faf5ff; --type-badge-remove: #a855f7; --type-text-remove: #6b21a8;
-      --type-bg-maint: #fff1f2; --type-badge-maint: #f43f5e; --type-text-maint: #9f1239;
-      --type-bg-other: #f1f5f9; --type-badge-other: #64748b; --type-text-other: #334155;
+      --type-bg-inspect: rgba(255, 247, 237, 0.9); --type-badge-inspect: #f97316; --type-text-inspect: #9a3412;
+      --type-bg-repair: rgba(240, 249, 255, 0.9); --type-badge-repair: #0ea5e9; --type-text-repair: #0c4a6e;
+      --type-bg-install: rgba(240, 253, 244, 0.9); --type-badge-install: #22c55e; --type-text-install: #166534;
+      --type-bg-remove: rgba(250, 245, 255, 0.9); --type-badge-remove: #a855f7; --type-text-remove: #6b21a8;
+      --type-bg-maint: rgba(255, 241, 242, 0.9); --type-badge-maint: #f43f5e; --type-text-maint: #9f1239;
+      --type-bg-other: rgba(241, 245, 249, 0.9); --type-badge-other: #64748b; --type-text-other: #334155;
 
       /* Result Colors - Light */
       --res-bg-done: #dcfce7;
@@ -1926,14 +2148,17 @@ const GlobalStyles = () => (
 
     [data-theme='dark'] {
       --bg-body: #020617;
-      --bg-app: #1e293b;
-      --bg-header: #000000;
+      --bg-body-gradient: linear-gradient(135deg, #020617 0%, #0f0a1e 40%, #020617 100%);
+      --bg-app: rgba(30, 41, 59, 0.9);
+      --bg-header: linear-gradient(135deg, #000000 0%, #0f0a1e 50%, #000000 100%);
+      --bg-header-solid: #000000;
       --bg-header-text: #ffffff;
-      --bg-alt: #0f172a;
-      --bg-input: #020617;
+      --bg-alt: rgba(15, 23, 42, 0.95);
+      --bg-hover: rgba(139,92,246,0.10);
+      --bg-input: rgba(2, 6, 23, 0.9);
       --bg-modal-overlay: rgba(0,0,0,0.85);
-      --border-color: #334155;
-      --border-light: #475569;
+      --border-color: rgba(51, 65, 85, 0.8);
+      --border-light: rgba(71, 85, 105, 0.5);
       --text-main: #ffffff;
       --text-sub: #e2e8f0;
       --text-muted: #94a3b8;
@@ -1942,23 +2167,29 @@ const GlobalStyles = () => (
       --color-danger-dark: #fb7185;
       --color-warning-light: rgba(234, 179, 8, 0.15);
       --color-warning-dark: #facc15;
-      --shadow: 0 10px 40px rgba(0,0,0,0.6);
-      --calendar-grid-border: #000000;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow: 0 4px 15px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.4);
+      --shadow-glass: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07);
+      --calendar-grid-border: rgba(0,0,0,0.6);
       --calendar-cell-border: rgba(255,255,255,0.03);
-      --bg-sat: #111e35;
-      --bg-sun: #2a1215;
-      --bg-today: #0c1a30;
+      --bg-sat: rgba(17, 30, 53, 0.9);
+      --bg-sun: rgba(42, 18, 21, 0.9);
+      --bg-today: rgba(12, 26, 48, 0.98);
       --accent-today: #0ea5e9;
-      --glass-bg: rgba(15, 23, 42, 0.85);
-      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(15, 23, 42, 0.75);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-bg-panel: rgba(15, 23, 42, 0.7);
+      --color-sat: #60a5fa;
+      --color-sun: #f87171;
 
       /* Type Colors - Dark (Deep Tone) */
-      --type-bg-inspect: #431407; --type-badge-inspect: #f97316; --type-text-inspect: #ffedd5;
-      --type-bg-repair: #082f49; --type-badge-repair: #0ea5e9; --type-text-repair: #e0f2fe;
-      --type-bg-install: #052e16; --type-badge-install: #22c55e; --type-text-install: #dcfce7;
-      --type-bg-remove: #2e1065; --type-badge-remove: #a855f7; --type-text-remove: #f3e8ff;
-      --type-bg-maint: #4c0519; --type-badge-maint: #f43f5e; --type-text-maint: #ffe4e6;
-      --type-bg-other: #1e293b; --type-badge-other: #94a3b8; --type-text-other: #f1f5f9;
+      --type-bg-inspect: rgba(67, 20, 7, 0.9); --type-badge-inspect: #f97316; --type-text-inspect: #ffedd5;
+      --type-bg-repair: rgba(8, 47, 73, 0.9); --type-badge-repair: #0ea5e9; --type-text-repair: #e0f2fe;
+      --type-bg-install: rgba(5, 46, 22, 0.9); --type-badge-install: #22c55e; --type-text-install: #dcfce7;
+      --type-bg-remove: rgba(46, 16, 101, 0.9); --type-badge-remove: #a855f7; --type-text-remove: #f3e8ff;
+      --type-bg-maint: rgba(76, 5, 25, 0.9); --type-badge-maint: #f43f5e; --type-text-maint: #ffe4e6;
+      --type-bg-other: rgba(30, 41, 59, 0.9); --type-badge-other: #94a3b8; --type-text-other: #f1f5f9;
 
       /* Result Colors - Dark */
       --res-bg-done: #064e3b;
@@ -1967,27 +2198,74 @@ const GlobalStyles = () => (
       --res-bg-other: #334155;
     }
 
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
-      background-color: var(--bg-body);
+      background: var(--bg-body-gradient);
+      background-attachment: fixed;
       color: var(--text-main);
-      transition: background-color 0.2s, color 0.2s;
-      font-family: 'Noto Sans JP', 'Inter', system-ui, sans-serif;
+      transition: background 0.3s, color 0.2s;
+      font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
     }
 
     .glass {
       background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
       border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+    }
+
+    .glass-panel {
+      background: var(--glass-bg-panel);
+      backdrop-filter: blur(16px) saturate(1.6);
+      -webkit-backdrop-filter: blur(16px) saturate(1.6);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow);
     }
 
     .today-premium {
       position: relative;
-      box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.1);
-      border: 1.5px solid var(--accent-today) !important;
+      box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.12), 0 0 0 1.5px var(--accent-today) !important;
       z-index: 1;
+    }
+
+    /* Assignment status indicator row */
+    .worker-row-assigned {
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .worker-row-assigned:hover {
+      box-shadow: var(--shadow-lg) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.7); }
+
+    /* Input / select glassmorphism */
+    input, select {
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--text-accent) !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Assignment dot pulse for unassigned */
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+    }
+    .unassigned-pulse {
+      animation: pulse-red 2s ease-in-out infinite;
     }
   `}</style>
 );
@@ -2020,6 +2298,15 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [showMiniCal, setShowMiniCal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsRef = useRef(null);
+  useEffect(() => {
+    if (!showSettings) return;
+    const handler = (e) => { if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSettings]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -2236,6 +2523,19 @@ export default function App() {
         flexDirection: "column",
         overflow: "hidden"
       }}>
+        {/* Mini Calendar Widget */}
+        {showMiniCal && (
+          <MiniCalendarWidget
+            todayStr={todayStr}
+            initialDate={selectedDate || todayStr}
+            onNavigate={(dateStr) => {
+              if (dateStr === null) { setShowMiniCal(false); return; }
+              setSelectedDate(dateStr);
+              setView("daily");
+            }}
+          />
+        )}
+
         {/* Worker Action Menu */}
         {workerActionMenu && (
           <div style={{ position: "fixed", inset: 0, zIndex: 9999 }} onClick={() => setWorkerActionMenu(null)}>
@@ -2307,21 +2607,83 @@ export default function App() {
         )}
 
         {/* Top bar */}
-        <div className="glass" style={{ background: "var(--bg-header)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", zIndex: 100, flexShrink: 0 }}>
+        <div style={{ background: "var(--bg-header)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", zIndex: 100, flexShrink: 0, boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <IconCalendar size={18} color="#93c5fd" />
+            <button
+              onClick={() => setShowMiniCal(v => !v)}
+              title={showMiniCal ? "ミニカレンダーを閉じる" : "ミニカレンダーを開く"}
+              style={{
+                background: showMiniCal ? "rgba(147,197,253,0.25)" : "rgba(255,255,255,0.08)",
+                border: showMiniCal ? "1px solid rgba(147,197,253,0.5)" : "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 7, cursor: "pointer", padding: "5px 7px",
+                display: "flex", alignItems: "center",
+                transition: "all 0.2s",
+                boxShadow: showMiniCal ? "0 0 10px rgba(147,197,253,0.3)" : "none",
+              }}
+              onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.18)"}
+              onMouseOut={e => e.currentTarget.style.background = showMiniCal ? "rgba(147,197,253,0.25)" : "rgba(255,255,255,0.08)"}
+            >
+              <IconCalendar size={16} color={showMiniCal ? "#93c5fd" : "rgba(255,255,255,0.7)"} />
+            </button>
             <span style={{ fontSize: 20, fontWeight: 900, color: "var(--bg-header-text)" }}>Total Scheduling System</span>
           </div>
           <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <button
-              onClick={() => setTheme(t => t === "light" ? "dark" : "light")}
-              title={theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
-              style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }}
-              onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
-              onMouseOut={e => e.currentTarget.style.background = "transparent"}
-            >
-              {theme === "light" ? <IconMoon size={16} color="rgba(255,255,255,0.7)" /> : <IconSun size={16} color="#fbbf24" />}
-            </button>
+            {/* Settings gear with theme toggle */}
+            <div ref={settingsRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowSettings(v => !v)}
+                title="設定"
+                style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: showSettings ? "rgba(255,255,255,0.2)" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }}
+                onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+                onMouseOut={e => e.currentTarget.style.background = showSettings ? "rgba(255,255,255,0.2)" : "transparent"}
+              >
+                <IconGear size={16} color="rgba(255,255,255,0.75)" />
+              </button>
+              {showSettings && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 9999,
+                  minWidth: 180,
+                  background: "var(--glass-bg)",
+                  backdropFilter: "blur(20px) saturate(1.8)",
+                  WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+                  border: "1px solid var(--glass-border)",
+                  borderRadius: 10,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4)",
+                  padding: "10px 14px",
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, letterSpacing: "0.08em" }}>表示設定</div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-main)", display: "flex", alignItems: "center", gap: 5 }}>
+                      {theme === "light" ? <IconSun size={13} color="#f59e0b" /> : <IconMoon size={13} color="#a5b4fc" />}
+                      {theme === "light" ? "ライトモード" : "ダークモード"}
+                    </span>
+                    <button
+                      onClick={() => { const next = theme === "light" ? "dark" : "light"; setTheme(next); localStorage.setItem("theme", next); }}
+                      style={{
+                        width: 40, height: 22, borderRadius: 11, border: "none", cursor: "pointer", position: "relative",
+                        background: theme === "dark" ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(148,163,184,0.3)",
+                        transition: "background 0.3s", flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        position: "absolute", top: 3, left: theme === "dark" ? 21 : 3,
+                        width: 16, height: 16, borderRadius: "50%",
+                        background: "#fff",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                        transition: "left 0.3s",
+                      }} />
+                    </button>
+                  </div>
+                  {perms.canManageRoles && (
+                    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--glass-border)" }}>
+                      <button onClick={() => { setShowAdmin(true); setShowSettings(false); }} style={{ width: "100%", padding: "5px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.08)", color: "var(--text-main)", cursor: "pointer", fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                        <IconGear size={12} color="var(--text-muted)" />管理者設定
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
             <button
               onClick={() => setIsFitWidth(!isFitWidth)}
@@ -2347,73 +2709,117 @@ export default function App() {
               background: "rgba(255,255,255,0.1)", 
               borderRadius: 4, 
               padding: "2px 6px",
-              border: hoveredDate ? "2px solid #ef4444" : "none",
+              border: "none",
               transition: "border 0.2s"
             }}>
               <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>－</button>
               <span style={{ color: "#fff", fontSize: 11, minWidth: 32, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
               <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>＋</button>
             </div>
-            {perms.canManageRoles && (
-              <button onClick={() => setShowAdmin(true)} title="管理者設定" style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.2)", background: showAdmin ? "rgba(255,255,255,0.2)" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"} onMouseOut={e => e.currentTarget.style.background = showAdmin ? "rgba(255,255,255,0.2)" : "transparent"}><IconGear size={14} color={showAdmin ? "#fff" : "rgba(255,255,255,0.7)"} /></button>
-            )}
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
-            <button onClick={() => supabase.auth.signOut()} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: "rgba(220,38,38,0.2)", color: "#fca5a5", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center" }}>ログアウト</button>
+            <button onClick={() => supabase.auth.signOut()} title="ログアウト" style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid rgba(220,38,38,0.4)", background: "rgba(220,38,38,0.15)", color: "#fca5a5", cursor: "pointer", display: "flex", alignItems: "center", transition: "background 0.2s" }}
+              onMouseOver={e => e.currentTarget.style.background = "rgba(220,38,38,0.3)"}
+              onMouseOut={e => e.currentTarget.style.background = "rgba(220,38,38,0.15)"}
+            >
+              <IconLogout size={16} color="#fca5a5" />
+            </button>
           </div>
         </div>
 
-        {/* View switcher tabs */}
+        {/* View switcher tabs - glass badge pills */}
         <div style={{
-          background: "var(--bg-app)",
-          borderBottom: "1px solid var(--border-color)",
-          padding: "0 20px",
+          background: "var(--glass-bg-panel)",
+          backdropFilter: "blur(16px) saturate(1.6)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.6)",
+          borderBottom: "1px solid var(--glass-border)",
+          padding: "7px 20px",
           display: "flex",
           alignItems: "center",
-          gap: 0,
+          gap: 6,
           flexShrink: 0,
-          zIndex: 100
+          zIndex: 99,
+          boxShadow: "0 1px 0 var(--glass-border)",
         }}>
           {[
-            { key: "monthly", label: "📅 Monthly" },
-            { key: "daily",   label: "📋 Daily" },
-            { key: "pool",    label: "🗂 Pool" },
-          ].map(v => (
-            <button key={v.key} onClick={() => setView(v.key)} style={{
-              padding: "8px 20px",
-              border: "none",
-              borderBottom: view === v.key ? "3px solid var(--text-accent)" : "3px solid transparent",
-              background: "transparent",
-              color: view === v.key ? "var(--text-accent)" : "var(--text-muted)",
-              fontWeight: view === v.key ? 800 : 500,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}>{v.label}</button>
-          ))}
+            {
+              key: "monthly", label: "Monthly", icon: <IconCalendar size={12} color="currentColor" />,
+              activeColor: "#2563eb", activeBg: "rgba(37,99,235,0.15)", activeShadow: "0 0 12px rgba(37,99,235,0.25)",
+            },
+            {
+              key: "daily",   label: "Daily",   icon: <IconClipboard size={12} color="currentColor" />,
+              activeColor: "#10b981", activeBg: "rgba(16,185,129,0.15)", activeShadow: "0 0 12px rgba(16,185,129,0.25)",
+            },
+            {
+              key: "pool",    label: "Pool",    icon: <IconPool size={12} color="currentColor" />,
+              activeColor: "#ec4899", activeBg: "rgba(236,72,153,0.15)", activeShadow: "0 0 12px rgba(236,72,153,0.25)",
+            },
+          ].map(v => {
+            const isActive = view === v.key;
+            return (
+              <button key={v.key} onClick={() => setView(v.key)} style={{
+                padding: "5px 14px",
+                borderRadius: 20,
+                border: isActive ? `1px solid ${v.activeColor}` : "1px solid var(--glass-border)",
+                background: isActive ? v.activeBg : "var(--glass-bg)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                color: isActive ? v.activeColor : "var(--text-muted)",
+                fontWeight: isActive ? 700 : 500,
+                fontSize: 12,
+                cursor: "pointer",
+                transition: "all 0.2s",
+                display: "flex", alignItems: "center", gap: 5,
+                letterSpacing: "0.02em",
+                boxShadow: isActive ? `${v.activeShadow}, 0 1px 4px rgba(0,0,0,0.08)` : "0 1px 3px rgba(0,0,0,0.06)",
+              }}
+                onMouseOver={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = "var(--bg-alt)";
+                    e.currentTarget.style.borderColor = "var(--border-color)";
+                    e.currentTarget.style.color = "var(--text-sub)";
+                  }
+                }}
+                onMouseOut={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = "var(--glass-bg)";
+                    e.currentTarget.style.borderColor = "var(--glass-border)";
+                    e.currentTarget.style.color = "var(--text-muted)";
+                  }
+                }}
+              >{v.icon}{v.label}</button>
+            );
+          })}
         </div>
 
         {/* Filters + legend - Fixed at top below bar */}
-        <div style={{
-          background: "var(--bg-app)",
-          borderBottom: "1px solid var(--border-color)",
+        <div className="glass-panel" style={{
+          borderBottom: "1px solid var(--glass-border)",
+          borderTop: "none", borderLeft: "none", borderRight: "none",
+          borderRadius: 0,
           padding: "6px 20px",
           flexShrink: 0,
-          zIndex: 100
+          zIndex: 98
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <input type="text" placeholder="検索..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "4px 10px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, width: 150, background: "var(--bg-input)", color: "var(--text-main)" }} />
-            <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "4px 8px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }}>
-              <option value="">全タイプ</option>{types.map(t => <option key={t}>{t}</option>)}
-            </select>
-            <select value={filterWorker} onChange={e => setFilterWorker(e.target.value)} style={{ padding: "4px 8px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }}>
+            <input type="text" placeholder="検索..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "5px 12px", border: "1px solid var(--border-color)", borderRadius: 8, fontSize: 12, width: 280, background: "var(--glass-bg)", color: "var(--text-main)", backdropFilter: "blur(8px)" }} />
+            <select value={filterWorker} onChange={e => setFilterWorker(e.target.value)} style={{ padding: "5px 8px", border: "1px solid var(--border-color)", borderRadius: 8, fontSize: 12, background: "var(--glass-bg)", color: "var(--text-main)", backdropFilter: "blur(8px)" }}>
               <option value="">全案件担当 (FE)</option>{workers.filter(w => w.sche_role === "field_engineer").map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
             </select>
+            {Object.entries(typeColors).map(([k, v]) => (
+              <button key={k} onClick={() => setFilterType(filterType === k ? "" : k)} style={{
+                fontSize: 10, padding: "2px 8px", borderRadius: 20, cursor: "pointer", fontWeight: 700,
+                border: `1px solid ${v.badge}`,
+                background: filterType === k ? v.badge : "transparent",
+                color: filterType === k ? "#fff" : v.text,
+                transition: "all 0.2s",
+              }}>{k}</button>
+            ))}
             <div style={{ flex: 1 }} />
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>合計:<b style={{ color: "#3b82f6", minWidth: "2.5em", textAlign: "right" }}>{stats.total}</b></span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>完了:<b style={{ color: "#16a34a", minWidth: "2.5em", textAlign: "right" }}>{stats.done}</b></span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>未対応:<b style={{ color: "#f59e0b", minWidth: "2.5em", textAlign: "right" }}>{stats.pending}</b></span>
           </div>
-          <Legend workers={workers.filter(w => w.sche_role === "field_engineer")} />
+          <Legend workers={workers.filter(w => w.sche_role === "field_engineer")} hoveredDate={hoveredDate} tickets={filtered} />
         </div>
 
         {/* Main content scroll container */}
@@ -2530,27 +2936,70 @@ export default function App() {
 
 
         {/* Month tabs (bottom, like spreadsheet) */}
-        <div className="glass" style={{
+        <div style={{
           position: "fixed", bottom: 0, left: 0, right: 0,
-          background: "var(--bg-app)", borderTop: "1px solid var(--calendar-grid-border)",
+          background: "var(--glass-bg)",
+          backdropFilter: "blur(20px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+          borderTop: "1px solid var(--glass-border)",
           display: "flex", alignItems: "center", padding: "0 8px",
-          boxShadow: "var(--shadow)", zIndex: 100,
+          boxShadow: "0 -4px 20px rgba(0,0,0,0.08), 0 -1px 4px rgba(0,0,0,0.04)",
+          zIndex: 100,
         }}>
-          <button onClick={() => setYear(y => y - 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "var(--text-sub)", fontWeight: 700 }}>◂年</button>
-          <button onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "var(--text-sub)", fontWeight: 700 }}>◂</button>
+          <button onClick={() => setYear(y => y - 1)} style={{
+            background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+            borderRadius: 6, cursor: "pointer", padding: "4px 8px", fontSize: 11,
+            color: "var(--text-sub)", fontWeight: 700, margin: "4px 2px",
+            backdropFilter: "blur(8px)", transition: "all 0.2s",
+          }}
+            onMouseOver={e => e.currentTarget.style.background = "var(--bg-alt)"}
+            onMouseOut={e => e.currentTarget.style.background = "var(--glass-bg)"}
+          >◂年</button>
+          <button onClick={prevMonth} style={{
+            background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+            borderRadius: 6, cursor: "pointer", padding: "4px 8px", fontSize: 13,
+            color: "var(--text-sub)", fontWeight: 700, margin: "4px 2px",
+            backdropFilter: "blur(8px)", transition: "all 0.2s",
+          }}
+            onMouseOver={e => e.currentTarget.style.background = "var(--bg-alt)"}
+            onMouseOut={e => e.currentTarget.style.background = "var(--glass-bg)"}
+          >◂</button>
           {MONTHS.map((m, i) => (
             <button key={i} onClick={() => setMonth(i)} style={{
-              padding: "8px 12px", border: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: month === i ? 900 : 700,
+              padding: "5px 10px", cursor: "pointer",
+              fontSize: 12, fontWeight: month === i ? 800 : 500,
               color: month === i ? "var(--text-accent)" : "var(--text-muted)",
-              background: "transparent",
-              borderTop: month === i ? "3px solid var(--text-accent)" : "3px solid transparent",
+              background: month === i ? "var(--glass-bg)" : "transparent",
+              border: month === i ? "1px solid var(--glass-border)" : "1px solid transparent",
+              borderRadius: 6,
+              margin: "4px 1px",
+              boxShadow: month === i ? "var(--shadow-sm)" : "none",
+              backdropFilter: month === i ? "blur(8px)" : "none",
               transition: "all 0.2s",
-              opacity: month === i ? 1 : 0.7
-            }}>{m}</button>
+              opacity: month === i ? 1 : 0.65,
+            }}
+              onMouseOver={e => { if (i !== month) { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--text-sub)"; }}}
+              onMouseOut={e => { if (i !== month) { e.currentTarget.style.opacity = "0.65"; e.currentTarget.style.color = "var(--text-muted)"; }}}
+            >{m}</button>
           ))}
-          <button onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 13, color: "var(--text-sub)", fontWeight: 700 }}>▸</button>
-          <button onClick={() => setYear(y => y + 1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", fontSize: 11, color: "var(--text-sub)", fontWeight: 700 }}>年▸</button>
+          <button onClick={nextMonth} style={{
+            background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+            borderRadius: 6, cursor: "pointer", padding: "4px 8px", fontSize: 13,
+            color: "var(--text-sub)", fontWeight: 700, margin: "4px 2px",
+            backdropFilter: "blur(8px)", transition: "all 0.2s",
+          }}
+            onMouseOver={e => e.currentTarget.style.background = "var(--bg-alt)"}
+            onMouseOut={e => e.currentTarget.style.background = "var(--glass-bg)"}
+          >▸</button>
+          <button onClick={() => setYear(y => y + 1)} style={{
+            background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+            borderRadius: 6, cursor: "pointer", padding: "4px 8px", fontSize: 11,
+            color: "var(--text-sub)", fontWeight: 700, margin: "4px 2px",
+            backdropFilter: "blur(8px)", transition: "all 0.2s",
+          }}
+            onMouseOver={e => e.currentTarget.style.background = "var(--bg-alt)"}
+            onMouseOut={e => e.currentTarget.style.background = "var(--glass-bg)"}
+          >年▸</button>
         </div>
 
         {/* Modals */}
