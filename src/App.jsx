@@ -2001,7 +2001,6 @@ export default function App() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [view, setView] = useState("monthly");
-  const todayStr = new Date().toISOString().slice(0, 10);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [editTicket, setEditTicket] = useState(null);
   const [viewingTicket, setViewingTicket] = useState(null);
