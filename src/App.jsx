@@ -2001,7 +2001,8 @@ export default function App() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [view, setView] = useState("monthly");
-  const [selectedDate, setSelectedDate] = useState(null);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [editTicket, setEditTicket] = useState(null);
   const [viewingTicket, setViewingTicket] = useState(null);
   const [isNew, setIsNew] = useState(false);
@@ -2360,6 +2361,36 @@ export default function App() {
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", margin: "0 6px" }} />
             <button onClick={() => supabase.auth.signOut()} style={{ padding: "5px 14px", borderRadius: 3, border: "none", background: "rgba(220,38,38,0.2)", color: "#fca5a5", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center" }}>ログアウト</button>
           </div>
+        </div>
+
+        {/* View switcher tabs */}
+        <div style={{
+          background: "var(--bg-app)",
+          borderBottom: "1px solid var(--border-color)",
+          padding: "0 20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 0,
+          flexShrink: 0,
+          zIndex: 100
+        }}>
+          {[
+            { key: "monthly", label: "📅 Monthly" },
+            { key: "daily",   label: "📋 Daily" },
+            { key: "pool",    label: "🗂 Pool" },
+          ].map(v => (
+            <button key={v.key} onClick={() => setView(v.key)} style={{
+              padding: "8px 20px",
+              border: "none",
+              borderBottom: view === v.key ? "3px solid var(--text-accent)" : "3px solid transparent",
+              background: "transparent",
+              color: view === v.key ? "var(--text-accent)" : "var(--text-muted)",
+              fontWeight: view === v.key ? 800 : 500,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}>{v.label}</button>
+          ))}
         </div>
 
         {/* Filters + legend - Fixed at top below bar */}
