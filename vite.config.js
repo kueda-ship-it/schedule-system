@@ -5,7 +5,9 @@ export default defineConfig({
   base: '/schedule-system/',
   plugins: [react()],
   server: {
-    host: '127.0.0.1',
-    port: 5174
+    host: '0.0.0.0', // Antigravityのプロキシ対応のため変更
+    port: 5174,
+    strictPort: true
   }
 })
+

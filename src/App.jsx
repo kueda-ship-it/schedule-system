@@ -59,6 +59,18 @@ const IconClipboard = ({ size = 14, color = "currentColor" }) => (
 const IconWrench = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
 );
+const IconMapPin = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+);
+const IconTruck = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+);
+const IconClock = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+);
+const IconPeopleGroup = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+);
 const IconNote = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
 );
@@ -75,6 +87,12 @@ const IconLogout = ({ size = 14, color = "currentColor" }) => (
 );
 const IconResize = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+);
+const IconLock = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+);
+const IconLockOpen = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
 );
 const MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 const DOW_HEADERS = ["月", "火", "水", "木", "金", "土", "日"];
@@ -141,7 +159,7 @@ const FAULT_LEVEL_COLORS = { A: "#dc2626", B: "#ea580c", C: "#ca8a04", D: "#2563
 const TIME_OPTIONS = (() => {
   const opts = [];
   for (let h = 0; h <= 12; h++) {
-    for (let m = 0; m < 60; m += 15) {
+    for (let m = 0; m < 60; m += 30) {
       if (h === 0 && m === 0) continue;
       if (h === 12 && m > 0) continue;
       opts.push(`${h}:${String(m).padStart(2, '0')}`);
@@ -174,27 +192,27 @@ const INITIAL_WORKERS = [
 ];
 
 const ALL_COLS = [
-  { key: "kubun", label: "区分", w: 62, type: "select", options: KUBUN_OPTIONS },
-  { key: "type", label: "タイプ", w: 62, type: "select", options: TYPES },
-  { key: "box", label: "BOX", w: 53, type: "text" },
-  { key: "unit", label: "号機", w: 44, type: "text" },
-  { key: "property", label: "物件名", w: 160, type: "text" },
-  { key: "category", label: "種別", w: 60, type: "text" },
-  { key: "work", label: "作業内容", w: 160, type: "text" },
-  { key: "time", label: "時間指定", w: 70, type: "text" },
+  { key: "kubun", label: "区分", w: 60, type: "select", options: KUBUN_OPTIONS },
+  { key: "type", label: "タイプ", w: 80, type: "select", options: TYPES },
+  { key: "box", label: "BOX", w: 45, type: "text" },
+  { key: "unit", label: "号機", w: 55, type: "text" },
+  { key: "property", label: "物件名", w: 180, type: "text" },
+  { key: "category", label: "種別", w: 40, type: "text" },
+  { key: "work", label: "作業内容", w: 200, type: "text" },
+  { key: "time", label: "時間指定", w: 60, type: "text" },
   { key: "person", label: "対応者", w: 70, type: "worker", dailyOnly: true },
-  { key: "area", label: "エリア", w: 65, type: "text" },
-  { key: "prefecture", label: "県別", w: 70, type: "select", options: PREFECTURES },
+  { key: "area", label: "エリア", w: 55, type: "text" },
+  { key: "prefecture", label: "県別", w: 55, type: "select", options: PREFECTURES },
   { key: "travel", label: "移動", w: 44, type: "text" },
   { key: "companion", label: "同行者", w: 57, type: "text" },
-  { key: "requestNo", label: "依頼番号", w: 79, type: "text" },
-  { key: "timeSlot", label: "TIME", w: 57, type: "select", options: TIME_OPTIONS },
+  { key: "requestNo", label: "依頼番号", w: 70, type: "text" },
+  { key: "timeSlot", label: "TIME", w: 50, type: "select", options: TIME_OPTIONS },
   { key: "course", label: "コース", w: 53, type: "text" },
-  { key: "result", label: "結果", w: 57, type: "select", options: RESULTS },
+  { key: "result", label: "結果", w: 70, type: "select", options: RESULTS },
   { key: "responseDate", label: "対応日", w: 84, type: "date" },
-  { key: "faultCategory", label: "障害区分", w: 99, type: "select", options: FAULT_CATEGORIES },
+  { key: "faultCategory", label: "障害区分", w: 80, type: "select", options: FAULT_CATEGORIES },
   { key: "faultLevel", label: "Level", w: 40, type: "auto" },
-  { key: "notes", label: "備考", w: 110, type: "text" },
+  { key: "notes", label: "備考", w: 80, type: "text" },
 ];
 
 const emptyTicket = () => ({
@@ -206,15 +224,21 @@ const emptyTicket = () => ({
 
 const typeColors = { ...DEFAULT_TYPE_COLORS };
 const TYPE_COLOR_PRESETS = [
-  { bg: "#dbeafe", text: "#1e40af", badge: "#93c5fd" },
-  { bg: "#fee2e2", text: "#991b1b", badge: "#fca5a5" },
-  { bg: "#dcfce7", text: "#166534", badge: "#86efac" },
-  { bg: "#f3e8ff", text: "#6b21a8", badge: "#d8b4fe" },
-  { bg: "#fef9c3", text: "#854d0e", badge: "#fde047" },
-  { bg: "#fce7f3", text: "#9d174d", badge: "#f9a8d4" },
-  { bg: "#ccfbf1", text: "#115e59", badge: "#5eead4" },
-  { bg: "#fff7ed", text: "#9a3412", badge: "#fdba74" },
-  { bg: "#f1f5f9", text: "#475569", badge: "#cbd5e1" },
+  { bg: "#eff6ff", text: "#fff", badge: "#3b82f6" }, // 青
+  { bg: "#fef2f2", text: "#fff", badge: "#ef4444" }, // 赤
+  { bg: "#f0fdf4", text: "#fff", badge: "#22c55e" }, // 緑
+  { bg: "#faf5ff", text: "#fff", badge: "#a855f7" }, // 紫
+  { bg: "#fefce8", text: "#fff", badge: "#eab308" }, // 黄
+  { bg: "#fdf2f8", text: "#fff", badge: "#ec4899" }, // ピンク
+  { bg: "#f0fdfa", text: "#fff", badge: "#14b8a6" }, // ティール
+  { bg: "#fff7ed", text: "#fff", badge: "#f97316" }, // オレンジ
+  { bg: "#f8fafc", text: "#fff", badge: "#64748b" }, // グレー
+  { bg: "#eef2ff", text: "#fff", badge: "#6366f1" }, // インディゴ
+  { bg: "#f5f3ff", text: "#fff", badge: "#8b5cf6" }, // バイオレット
+  { bg: "#ecfdf5", text: "#fff", badge: "#10b981" }, // エメラルド
+  { bg: "#fff1f2", text: "#fff", badge: "#f43f5e" }, // ローズ
+  { bg: "#f0f9ff", text: "#fff", badge: "#0ea5e9" }, // スカイ
+  { bg: "#ccfbf1", text: "#fff", badge: "#0d9488" }, // ターコイズ
 ];
 const resultColors = {
   "完了": "var(--res-bg-done)",
@@ -380,7 +404,8 @@ function getMonthCalendar(year, month) {
 
 
 // --- Month Calendar View (grouped by worker) ---
-function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, onDayClick, onEdit, onView, onAdd, onReorder, onMoveTicket, isAdmin, theme, hoveredDate, setHoveredDate }) {
+function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, onDayClick, onEdit, onView, onAdd, onReorder, onMoveTicket, isAdmin, theme, hoveredDate, setHoveredDate, isFitWidth, zoom }) {
+  const colWidth = isFitWidth ? "minmax(0, 1fr)" : `calc((100vw - 64px) / 2 / ${zoom})`;
   const [collapsedWorkers, setCollapsedWorkers] = useState({}); // { "date-workerId": boolean }
 
   const toggleCollapse = (dateStr, workerId) => {
@@ -467,35 +492,36 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
     <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid var(--calendar-grid-border)", borderRadius: 10, overflow: "clip", background: "var(--glass-bg)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "var(--shadow-glass)" }}>
       {/* DOW header – sticky, individual glass pills */}
       <div style={{
-        display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+        display: "grid", gridTemplateColumns: `repeat(7, ${colWidth})`,
         position: "sticky", top: 0, zIndex: 20,
-        background: "var(--glass-bg)",
-        backdropFilter: "blur(24px) saturate(2)",
-        WebkitBackdropFilter: "blur(24px) saturate(2)",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)",
+        background: "var(--glass-bg-panel)",
+        backdropFilter: `blur(var(--glass-blur)) saturate(var(--glass-saturation))`,
+        WebkitBackdropFilter: `blur(var(--glass-blur)) saturate(var(--glass-saturation))`,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1)",
         borderBottom: "1px solid var(--glass-border)",
-        padding: "5px 3px",
-        gap: 3,
+        padding: "6px 4px",
+        gap: 4,
       }}>
         {DOW_HEADERS.map((d, i) => {
           const isSat = i === 5, isSun = i === 6;
           return (
             <div key={i} style={{
-              padding: "5px 0", textAlign: "center", fontSize: 11, fontWeight: 900,
-              letterSpacing: 2,
+              padding: "6px 0", textAlign: "center", fontSize: 11, fontWeight: 900,
+              letterSpacing: "0.15em",
               color: isSun ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-sub)",
-              borderRadius: 6,
+              borderRadius: 8,
               background: isSun
-                ? "rgba(239,68,68,0.1)"
+                ? "rgba(239,68,68,0.08)"
                 : isSat
-                  ? "rgba(37,99,235,0.08)"
-                  : "rgba(148,163,184,0.06)",
+                  ? "rgba(37,99,235,0.06)"
+                  : "rgba(255,255,255,0.03)",
               border: isSun
-                ? "1px solid rgba(239,68,68,0.15)"
+                ? "1px solid rgba(239,68,68,0.2)"
                 : isSat
-                  ? "1px solid rgba(37,99,235,0.12)"
+                  ? "1px solid rgba(37,99,235,0.15)"
                   : "1px solid var(--glass-border)",
-              backdropFilter: "blur(8px)",
+              backdropFilter: "blur(4px)",
+              textShadow: theme === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none",
             }}>{d}</div>
           );
         })}
@@ -504,7 +530,7 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
       {/* Week rows */}
       {weeks.map((week, wi) => (
         <div key={wi} style={{
-          display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+          display: "grid", gridTemplateColumns: `repeat(7, ${colWidth})`,
           borderBottom: wi < weeks.length - 1 ? "1px solid var(--calendar-grid-border)" : "none",
           alignItems: "stretch",
         }}>
@@ -524,6 +550,7 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
             const isFullyAssigned = total > 0 && !hasUnassigned;
             return (
               <div key={ci}
+                id={"day-cell-" + cell.dateStr}
                 className={isToday ? "today-premium" : ""}
                 title={holidayName ? holidayName : ""}
                 onMouseEnter={() => setHoveredDate(cell.dateStr)}
@@ -531,25 +558,26 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                 style={{
                   borderRight: ci < 6 ? "1px solid var(--calendar-cell-border)" : "none",
                   background: isToday
-                    ? "linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.10) 100%)"
+                    ? (theme === "dark" ? "linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.05) 100%)" : "rgba(251,191,36,0.15)")
                     : (isSun || isHolidayDay)
-                      ? "rgba(239,68,68,0.05)"
+                      ? "var(--bg-sun)"
                       : isSat
-                        ? "rgba(37,99,235,0.04)"
-                        : "rgba(255,255,255,0.02)",
-                  backdropFilter: "blur(8px)",
-                  WebkitBackdropFilter: "blur(8px)",
-                  padding: 2,
+                        ? "var(--bg-sat)"
+                        : "var(--bg-alt)",
+                  backdropFilter: `blur(var(--glass-blur)) saturate(1.2)`,
+                  WebkitBackdropFilter: `blur(var(--glass-blur)) saturate(1.2)`,
+                  padding: 3,
                   display: "flex", flexDirection: "column",
                   minHeight: 140,
-                  transition: "background 0.2s, outline 0.15s, box-shadow 0.2s",
+                  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                   boxShadow: isToday
-                    ? "inset 0 0 0 1.5px rgba(251,191,36,0.5), inset 0 0 16px rgba(245,158,11,0.08)"
+                    ? "inset 0 0 0 2px rgba(251,191,36,0.4), inset 0 0 24px rgba(245,158,11,0.1)"
                     : isHovered
-                      ? "inset 0 0 0 2px rgba(139,92,246,0.55), 0 0 12px rgba(139,92,246,0.12)"
+                      ? "inset 0 0 0 2.5px var(--text-accent), 0 0 20px rgba(56, 189, 248, 0.2)"
                       : "none",
-                  outline: "none",
-                  zIndex: isHovered ? 5 : 1,
+                  zIndex: isHovered ? 10 : 1,
+                  position: "relative",
+                  cursor: "default"
                 }}
               >
                 {/* Day number + count + add button */}
@@ -587,41 +615,6 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                   </button>
                 </div>
 
-                {/* Unassigned tickets rows */}
-                {unassignedTickets.length > 0 && (
-                  <div style={{ marginBottom: 4, borderRadius: 3, border: "1px dashed #f87171", background: "var(--bg-body)", overflow: "hidden" }}>
-                    <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "rgba(239, 68, 68, 0.1)", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
-                    {unassignedTickets.map((t, i) => {
-                      const tc = typeColors[t.type] || typeColors["その他"];
-                      return (
-                        <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
-                          style={{ padding: "4px 5px", borderTop: i === 0 ? "none" : "1px solid var(--border-light)", background: "var(--bg-body)", cursor: "pointer" }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginBottom: 2 }}>
-                            {t.kubun && kubunColors[t.kubun] && (
-                              <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun].text, border: `1px solid ${kubunColors[t.kubun].border}` }}>{t.kubun}</span>
-                            )}
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc.text, border: `1px solid ${tc.badge}` }}>{t.type}</span>
-                            {t.unit && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
-                            {t.property && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
-                          </div>
-                          {t.work && <div style={{ fontSize: 10, color: "var(--text-sub)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>}
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginTop: 2 }}>
-                            {t.time && formatExcelTime(t.time) && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#d97706", border: "1px solid rgba(245,158,11,0.4)" }}>{formatExcelTime(t.time)}</span>}
-                            {t.area && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.area}</span>}
-                            {t.prefecture && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.prefecture}</span>}
-                            {t.timeSlot && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#6366f1", border: "1px solid rgba(99,102,241,0.4)" }}>{t.timeSlot}</span>}
-                            {typeof t.companion === "string" && t.companion && (
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "var(--text-sub)", border: "1px solid rgba(128,128,128,0.3)" }}>
-                                <IconPeople size={9} color="var(--text-muted)" />{t.companion.split(/[\s　]+/)[0]}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
                 {/* Workers with tickets (grouped) */}
                 <div style={{ flex: 1 }}>
                   {withTickets.map(({ worker: w, tickets: wt }) => {
@@ -642,9 +635,10 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                     }, 0);
                     return (
                       <div key={w.id} style={{
-                        marginBottom: 2, borderRadius: 3, overflow: "hidden",
-                        border: "1px solid var(--border-color)",
+                        marginBottom: 6, borderRadius: "var(--radius-sm)", overflow: "hidden",
+                        border: "1px solid var(--border-light)",
                         display: "flex",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                         background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#eff6ff" : "transparent"
                       }}
                         onDragOver={(e) => { e.preventDefault(); if (monthDragId) setMonthDragOver({ workerId: String(w.id), dateStr: cell.dateStr }); }}
@@ -718,9 +712,9 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                                   {t.kubun && kubunColors[t.kubun] && (
                                     <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun].text, border: `1px solid ${kubunColors[t.kubun].border}` }}>{t.kubun}</span>
                                   )}
-                                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc.text, border: `1px solid ${tc.badge}` }}>{t.type}</span>
-                                  {t.unit && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
-                                  {t.property && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
+                                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "rgba(255,255,255,0.03)", color: tc?.badge || "var(--text-muted)", border: `1px solid ${tc?.badge || "var(--border-color)"}` }}>{t.type}</span>
+                                  {t.unit && <span style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
+                                  {t.property && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
                                 </div>
                                 {t.work && <div style={{ fontSize: 10, color: "var(--text-sub)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>}
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginTop: 2 }}>
@@ -761,6 +755,41 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                   </div>
                 );
               })}
+
+                {/* Unassigned tickets rows */}
+                {unassignedTickets.length > 0 && (
+                  <div style={{ marginBottom: 4, marginTop: 4, borderRadius: 3, border: "1px dashed #f87171", background: "rgba(239, 68, 68, 0.04)", overflow: "hidden", backdropFilter: "blur(4px)" }}>
+                    <div style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", padding: "1px 4px", background: "rgba(239, 68, 68, 0.1)", borderBottom: "1px dashed #f87171" }}>未割当 ({unassignedTickets.length})</div>
+                    {unassignedTickets.map((t, i) => {
+                      const tc = typeColors[t.type] || typeColors["その他"];
+                      return (
+                        <div key={t.id} onClick={() => isAdmin ? onEdit(t) : (onView ? onView(t) : onEdit(t))}
+                          style={{ padding: "4px 5px", borderTop: i === 0 ? "none" : "1px solid var(--border-light)", background: "transparent", cursor: "pointer" }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginBottom: 2 }}>
+                            {t.kubun && kubunColors[t.kubun] && (
+                              <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun].text, border: `1px solid ${kubunColors[t.kubun].border}` }}>{t.kubun}</span>
+                            )}
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc.text, border: `1px solid ${tc.badge}` }}>{t.type}</span>
+                            {t.unit && <span style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
+                            {t.property && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{t.property}</span>}
+                          </div>
+                          {t.work && <div style={{ fontSize: 10, color: "var(--text-sub)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.work}</div>}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, marginTop: 2 }}>
+                            {t.time && formatExcelTime(t.time) && <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#d97706", border: "1px solid rgba(245,158,11,0.4)" }}>{formatExcelTime(t.time)}</span>}
+                            {t.area && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.area}</span>}
+                            {t.prefecture && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t.prefecture}</span>}
+                            {t.timeSlot && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#6366f1", border: "1px solid rgba(99,102,241,0.4)" }}>{t.timeSlot}</span>}
+                            {typeof t.companion === "string" && t.companion && (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "var(--text-sub)", border: "1px solid rgba(128,128,128,0.3)" }}>
+                                <IconPeople size={9} color="var(--text-muted)" />{t.companion.split(/[\s　]+/)[0]}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
 
 
@@ -804,7 +833,16 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
   const dayTickets = tickets.filter(t => t.date === dateStr);
   const d = new Date(dateStr + "T00:00:00");
   const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-  const currentCols = ALL_COLS.filter(c => c.key !== "person");
+  // デイリービュー専用の列構成定義
+  const dailyHiddenKeys = ["person", "course", "responseDate", "travel", "companion"];
+  const baseCols = ALL_COLS.filter(c => !dailyHiddenKeys.includes(c.key));
+  // resultを最後に持ってくる（notesの右）
+  const resultCol = baseCols.find(c => c.key === "result");
+  const notesCol = baseCols.find(c => c.key === "notes");
+  const otherCols = baseCols.filter(c => c.key !== "result" && c.key !== "notes");
+  
+  // 幅の再配分
+  const currentCols = [...otherCols, notesCol, resultCol].filter(Boolean);
   const vacSet = vacations[dateStr] || new Set();
 
   const grouped = {};
@@ -845,15 +883,127 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
   const isSundayAtDay = d.getDay() === 0;
   const dateColorAtDay = (isSundayAtDay || isHolidayAtDay) ? "#ef4444" : (d.getDay() === 6 ? "#2563eb" : "var(--text-main)");
 
+  // 障害・工事別のエリアサマリー集計
+  const summary = useMemo(() => {
+    const stats = {
+      "FTS": { fault: 0, periodic: 0, parts: 0, construct: 0 },
+      "委託": { fault: 0, periodic: 0, parts: 0, construct: 0 },
+    };
+    const faultAreas = new Set();
+    const constructAreas = new Set();
+
+    dayTickets.forEach(t => {
+      // 未割り当ては集計に含めない (ユーザー要望)
+      if (!t.person || t.person === "未割り当て") return;
+
+      const cat = String(t.category || "");
+      const type = String(t.type || "");
+      const area = t.area || "";
+
+      // エリア名の収集 (障害・工事)
+      if (cat.includes("障害") || cat.includes("2次")) {
+        if (area) faultAreas.add(area);
+      } else if (cat.includes("工事") || type.includes("設置")) {
+        if (area) constructAreas.add(area);
+      }
+
+      // FTS/委託別の件数集計
+      const kRaw = String(t.kubun || "").trim().toUpperCase();
+      let k = null;
+      if (kRaw.includes("FTS") || kRaw.includes("自社")) k = "FTS";
+      else if (kRaw.includes("委託") || kRaw.includes("協社") || kRaw.includes("協力")) k = "委託";
+      
+      // もしkubunが空でも、名前などで判別が必要な場合はここで補完できるが、
+      // 現状は明示的に設定されているもののみを集計する（ユーザー要望通りFTS,委託ごとに表示）
+      if (k) {
+        if (cat.includes("障害") || cat.includes("2次")) stats[k].fault++;
+        else if (cat.includes("定期")) stats[k].periodic++;
+        else if (cat.includes("部品交換") || cat.includes("承認済み")) stats[k].parts++;
+        else if (cat.includes("工事") || cat.includes("設置") || type.includes("設置")) stats[k].construct++;
+      }
+    });
+
+    return {
+      stats,
+      faultAreas: Array.from(faultAreas),
+      constructAreas: Array.from(constructAreas)
+    };
+  }, [dayTickets]);
+
   return (
-    <div style={{ padding: "0 4px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "var(--text-main)", display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ color: dateColorAtDay }}>{d.getMonth() + 1}月{d.getDate()}日（{dow}）{isHolidayAtDay ? ` ${isHolidayAtDay}` : ""}</span>
-          <span style={{ fontSize: 13, fontWeight: 500, background: "var(--bg-alt)", padding: "2px 8px", borderRadius: 12, color: "var(--text-sub)" }}>{dayTickets.length}件</span>
-        </h2>
-        <button onClick={() => onAdd(dateStr)} style={{ padding: "6px 16px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>＋ 追加</button>
-      </div>
+    <div style={{ padding: "60px 20px 20px 20px" }}>
+      <header className="glass-panel" style={{
+        display: "flex", flexDirection: "column", gap: 20,
+        marginBottom: 24, padding: "24px 32px",
+        border: "1px solid var(--glass-border)",
+        boxShadow: "var(--shadow-lg)",
+      }}>
+        {/* Top Row: Date, Count, Areas, Add Button */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 30, fontWeight: 900, color: dateColorAtDay, letterSpacing: "-0.03em", textShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
+                {d.getMonth() + 1}月{d.getDate()}日（{dow}）{isHolidayAtDay ? ` ${isHolidayAtDay}` : ""}
+              </h2>
+              <span style={{ fontSize: 18, color: "var(--text-main)", fontWeight: 800, background: "rgba(0,0,0,0.06)", padding: "4px 16px", borderRadius: "14px", border: "1px solid var(--border-light)" }}>
+                {summary.stats.FTS.fault + summary.stats.FTS.periodic + summary.stats.FTS.parts + summary.stats.FTS.construct +
+                 summary.stats.委託.fault + summary.stats.委託.periodic + summary.stats.委託.parts + summary.stats.委託.construct}件
+              </span>
+            </div>
+
+            {/* エリアリスト */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              {summary.faultAreas.length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(239, 68, 68, 0.08)", padding: "6px 16px", borderRadius: "16px", border: "1px solid rgba(239, 68, 68, 0.15)" }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: "#ef4444" }}>障害:</span>
+                  <span style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 800 }}>{summary.faultAreas.join("、")}</span>
+                </div>
+              )}
+              {summary.constructAreas.length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(37, 99, 235, 0.08)", padding: "6px 16px", borderRadius: "16px", border: "1px solid rgba(37, 99, 235, 0.15)" }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: "#2563eb" }}>工事:</span>
+                  <span style={{ fontSize: 14, color: "var(--text-main)", fontWeight: 800 }}>{summary.constructAreas.join("、")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button onClick={() => onAdd(dateStr)} className="glass-card" style={{ 
+            padding: "10px 28px", border: "1px solid var(--border-color)", background: "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)", 
+            color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", transition: "all 0.3s cubic-bezier(0.23, 1, 0.32, 1)", 
+            boxShadow: "0 10px 20px rgba(30,64,175,0.25)" 
+          }}
+            onMouseOver={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 15px 30px rgba(30,64,175,0.4)"; }}
+            onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 10px 20px rgba(30,64,175,0.25)"; }}
+          >＋ 新規チケット追加</button>
+        </div>
+
+        {/* Bottom Row: Detailed Summary (FTS/委託) */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 32, paddingTop: 20, borderTop: "1px solid var(--border-light)" }}>
+          {["FTS", "委託"].map(k => {
+            const s = summary.stats[k] || { fault: 0, periodic: 0, parts: 0, construct: 0 };
+            const isFTS = k === "FTS";
+            return (
+              <div key={k} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ 
+                  fontSize: 11, fontWeight: 900, 
+                  color: isFTS ? "#1e40af" : "#9333ea", 
+                  background: isFTS ? "rgba(30,64,175,0.08)" : "rgba(147,51,234,0.08)", 
+                  padding: "4px 12px", borderRadius: "10px", 
+                  border: `1px solid ${isFTS ? "rgba(30,64,175,0.2)" : "rgba(147,51,234,0.2)"}`, 
+                  minWidth: 50, textAlign: "center", letterSpacing: "1px" 
+                }}>{k}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-sub)", display: "flex", gap: 12 }}>
+                  <span>障害 <span style={{ color: "#ef4444", fontSize: 15 }}>{s.fault}</span></span>
+                  <span>定期 <span style={{ color: "#ca8a04", fontSize: 15 }}>{s.periodic}</span></span>
+                  <span>部品 <span style={{ color: "#8b5cf6", fontSize: 15 }}>{s.parts}</span></span>
+                  <span>工事 <span style={{ color: "#2563eb", fontSize: 15 }}>{s.construct}</span></span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </header>
 
       {/* Vacation header */}
       {vacWorkers.length > 0 && (
@@ -890,7 +1040,7 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
         </div>
       )}
 
-      {[UNASSIGNED_WORKER, ...displayWorkers].map(w => {
+      {[...displayWorkers, UNASSIGNED_WORKER].map(w => {
         const wt = grouped[String(w.id)] || [];
         const isVac = vacSet.has(w.id);
         const isAdminUser = w.sche_role === "admin";
@@ -902,85 +1052,99 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
         if (isUnassignedRow && wt.length === 0) return null;
 
         return (
-          <div key={w.id} className="worker-row-assigned" style={{
-            marginBottom: 8,
-            borderRadius: 10,
+          <div key={w.id} className="glass-card" style={{
+            marginBottom: 24,
+            borderRadius: 16,
             overflow: "hidden",
-            border: isUnassignedRow
-              ? "1.5px dashed rgba(239,68,68,0.6)"
+            borderColor: isUnassignedRow
+              ? "rgba(239,68,68,0.5)"
               : isVac
-                ? "1.5px solid rgba(234,179,8,0.4)"
+                ? "rgba(234,179,8,0.4)"
                 : wt.length > 0
-                  ? `1.5px solid ${w.color}50`
-                  : "1px solid var(--border-color)",
-            background: "var(--glass-bg)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            boxShadow: isUnassignedRow
-              ? `0 0 0 1px rgba(239,68,68,0.1), 0 4px 16px rgba(239,68,68,0.1), 0 1px 4px rgba(0,0,0,0.06)`
-              : wt.length > 0
-                ? `0 0 0 1px ${w.color}12, 0 4px 16px ${w.color}14, 0 1px 4px rgba(0,0,0,0.05)`
-                : "0 1px 4px rgba(0,0,0,0.04)",
+                  ? `${w.color}80`
+                  : "var(--glass-border)",
+            borderStyle: isUnassignedRow ? "dashed" : "solid",
           }}>
             <div style={{ flex: 1, overflow: "hidden" }}>
               <div style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "6px 12px",
-                borderBottom: wt.length > 0 ? "1px solid var(--border-light)" : "none",
-                borderLeft: `3px solid ${isUnassignedRow ? "#ef4444" : isVac ? "#eab308" : wt.length > 0 ? w.color : "var(--border-light)"}`,
+                display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
+                borderBottom: wt.length > 0 ? "1px solid var(--glass-border)" : "none",
+                borderLeft: `4px solid ${isUnassignedRow ? "#ef4444" : isVac ? "#eab308" : wt.length > 0 ? w.color : "var(--glass-border)"}`,
                 background: isUnassignedRow
-                  ? "linear-gradient(90deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%)"
+                  ? "linear-gradient(90deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.02) 100%)"
                   : isVac
-                    ? "linear-gradient(90deg, rgba(234,179,8,0.1) 0%, rgba(234,179,8,0.03) 100%)"
+                    ? "linear-gradient(90deg, rgba(234,179,8,0.12) 0%, rgba(234,179,8,0.01) 100%)"
                     : wt.length > 0
-                      ? `linear-gradient(90deg, ${w.color}18 0%, ${w.color}05 100%)`
+                      ? `linear-gradient(90deg, ${w.color}25 0%, ${w.color}05 100%)`
                       : "transparent",
               }}>
                 {/* Assignment status avatar */}
-                <div style={{
-                  width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 800, lineHeight: 1,
-                  color: isUnassignedRow ? "#ef4444" : isVac ? "#d97706" : "#fff",
-                  background: isUnassignedRow
-                    ? "rgba(239,68,68,0.12)"
-                    : isVac
-                      ? "rgba(234,179,8,0.18)"
-                      : wt.length > 0
-                        ? w.color
-                        : `${w.color}22`,
-                  border: isUnassignedRow
-                    ? "1.5px dashed rgba(239,68,68,0.6)"
-                    : isVac
-                      ? "1.5px solid rgba(234,179,8,0.5)"
-                      : wt.length > 0
-                        ? `2px solid ${w.color}`
-                        : `1.5px dashed ${w.color}60`,
-                  boxShadow: wt.length > 0 && !isUnassignedRow && !isVac
-                    ? `0 0 8px ${w.color}50, 0 2px 4px rgba(0,0,0,0.1)`
-                    : isUnassignedRow ? "0 0 6px rgba(239,68,68,0.4)" : "none",
-                  opacity: wt.length === 0 && !isUnassignedRow && !isVac ? 0.6 : 1,
-                  transition: "all 0.2s",
-                }} className={isUnassignedRow ? "unassigned-pulse" : ""}>
-                  {isUnassignedRow ? "?" : (w.name?.charAt(0) || "?")}
+                <div style={{ flexShrink: 0 }}>
+                  {isUnassignedRow ? (
+                    <div style={{
+                      width: 36, height: 36, borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 14, fontWeight: 900, color: "#ef4444",
+                      background: "rgba(239,68,68,0.1)",
+                      border: "2px dashed rgba(239,68,68,0.5)",
+                      boxShadow: "0 0 8px rgba(239,68,68,0.3)"
+                    }} className="unassigned-pulse">?</div>
+                  ) : (
+                    <UserAvatar user={w} size={36} style={{ 
+                      border: wt.length > 0 ? `2.5px solid ${w.color}` : `1.5px dashed ${w.color}50`,
+                      boxShadow: wt.length > 0 ? `0 0 12px ${w.color}40, 0 4px 8px rgba(0,0,0,0.15)` : "none"
+                    }} />
+                  )}
                 </div>
                 <span style={{
-                  fontWeight: wt.length > 0 || isUnassignedRow ? 700 : 500,
-                  fontSize: 13,
+                  fontWeight: 800,
+                  fontSize: 14,
                   letterSpacing: "-0.01em",
-                  color: isUnassignedRow ? "var(--color-danger-dark)" : isVac ? "#d97706" : wt.length > 0 ? (theme === "dark" ? "var(--text-main)" : w.color) : "var(--text-muted)",
-                  opacity: isVac && wt.length === 0 ? 0.7 : 1,
-                }}>{isUnassignedRow ? "未割当" : w.name}</span>
-                {isVac && <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: "rgba(234,179,8,0.18)", color: "#d97706", fontWeight: 700, border: "1px solid rgba(234,179,8,0.3)" }}>休暇</span>}
+                  color: isUnassignedRow ? "var(--color-danger-dark)" : isVac ? (theme === "dark" ? "#fbbf24" : "#b45309") : wt.length > 0 ? (theme === "dark" ? "var(--text-main)" : w.color) : "var(--text-muted)",
+                  opacity: isVac && wt.length === 0 ? 0.75 : 1,
+                  textShadow: theme === "dark" ? "0 1px 4px rgba(0,0,0,0.5)" : "none",
+                }}>{isUnassignedRow ? "未定・未割当" : w.name}</span>
+                {isVac && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 12, background: "rgba(234,179,8,0.2)", color: "#f59e0b", fontWeight: 800, border: "1px solid rgba(234,179,8,0.4)", letterSpacing: "0.05em" }}>VACATION</span>}
+                
+                {/* ワーカーサマリー情報の追加 */}
+                {!isUnassignedRow && wt.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 16 }}>
+                    {/* エリアまとめ */}
+                    {Array.from(new Set(wt.map(t => t.area).filter(Boolean))).length > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 10px", background: "rgba(59, 130, 246, 0.15)", borderRadius: 20, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                        <IconMapPin size={12} color="#3b82f6" />
+                        <span style={{ fontSize: 11, fontWeight: 800, color: theme === "dark" ? "#93c5fd" : "#1d4ed8" }}>
+                          {Array.from(new Set(wt.map(t => t.area).filter(Boolean))).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    {/* 同行者まとめ */}
+                    {Array.from(new Set(wt.map(t => t.companion).filter(Boolean))).length > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 10px", background: "rgba(16, 185, 129, 0.15)", borderRadius: 20, border: "1px solid rgba(16, 185, 129, 0.3)" }}>
+                        <IconPeople size={12} color="#10b981" />
+                        <span style={{ fontSize: 11, fontWeight: 800, color: theme === "dark" ? "#6ee7b7" : "#065f46" }}>
+                          {Array.from(new Set(wt.map(t => t.companion).filter(Boolean))).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    {/* 移動まとめ */}
+                    {Array.from(new Set(wt.map(t => t.travel).filter(Boolean))).length > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 10px", background: "rgba(245, 158, 11, 0.15)", borderRadius: 20, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                        <IconTruck size={12} color="#f59e0b" />
+                        <span style={{ fontSize: 11, fontWeight: 800, color: theme === "dark" ? "#fcd34d" : "#92400e" }}>
+                          {Array.from(new Set(wt.map(t => t.travel).filter(Boolean))).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {!isVac && wt.length > 0 && (
                   <span style={{
-                    fontSize: 10, padding: "2px 7px", borderRadius: 10, fontWeight: 800,
-                    background: isUnassignedRow ? "rgba(239,68,68,0.12)" : `${w.color}18`,
-                    color: isUnassignedRow ? "var(--color-danger-dark)" : w.color,
-                    border: `1px solid ${isUnassignedRow ? "rgba(239,68,68,0.25)" : `${w.color}35`}`,
-                  }}>{wt.length}件</span>
-                )}
-                {!isVac && wt.length === 0 && !isUnassignedRow && (
-                  <span style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.6 }}>未割当</span>
+                    fontSize: 10, padding: "2px 8px", borderRadius: 12, fontWeight: 900,
+                    background: isUnassignedRow ? "rgba(239,68,68,0.15)" : (theme === "dark" ? "rgba(255,255,255,0.08)" : `${w.color}15`),
+                    color: isUnassignedRow ? "var(--color-danger-dark)" : (theme === "dark" ? "var(--text-main)" : w.color),
+                    border: `1px solid ${isUnassignedRow ? "rgba(239,68,68,0.3)" : (theme === "dark" ? "rgba(255,255,255,0.15)" : `${w.color}35`)}`,
+                  }}>{wt.length} TASKS</span>
                 )}
                 <div style={{ flex: 1 }} />
                 {!isUnassignedRow && (
@@ -990,38 +1154,38 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                     }
                     onToggleVacation && onToggleVacation(dateStr, w.id);
                   }} style={{
-                    padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700,
-                    border: isVac ? "1px solid rgba(234,179,8,0.5)" : "1px solid var(--border-color)",
-                    background: isVac ? "rgba(254,240,138,0.9)" : "var(--glass-bg)",
-                    color: isVac ? "#854d0e" : "var(--text-sub)",
-                    transition: "all 0.2s ease",
+                    padding: "4px 12px", borderRadius: 8, cursor: "pointer", fontSize: 11, fontWeight: 800,
+                    border: isVac ? "1px solid rgba(234,179,8,0.5)" : "1px solid var(--glass-border)",
+                    background: isVac ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "var(--glass-bg)",
+                    color: isVac ? "#000" : "var(--text-sub)",
+                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                     backdropFilter: "blur(8px)",
                   }}
-                    onMouseOver={e => { e.currentTarget.style.background = isVac ? "#fde047" : "var(--bg-alt)"; e.currentTarget.style.transform = "scale(1.04)"; }}
-                    onMouseOut={e => { e.currentTarget.style.background = isVac ? "rgba(254,240,138,0.9)" : "var(--glass-bg)"; e.currentTarget.style.transform = "scale(1)"; }}
-                  >{isVac ? <><IconCheck size={10} color="#854d0e" /> 出勤にする</> : <><IconVacation size={10} color="var(--text-muted)" /> 休暇</>}</button>
+                    onMouseOver={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
+                    onMouseOut={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; }}
+                  >{isVac ? <><IconCheck size={11} color="#000" /> 出勤に戻す</> : <><IconVacation size={11} color="var(--text-muted)" /> 休暇設定</>}</button>
                 )}
-                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "var(--glass-bg)", border: "1px solid var(--border-color)", borderRadius: 6, cursor: "pointer", color: "var(--text-muted)", fontSize: 10, padding: "3px 9px", fontWeight: 700, transition: "all 0.15s" }}
-                  onMouseOver={e => { e.currentTarget.style.background = "var(--bg-alt)"; }}
-                  onMouseOut={e => { e.currentTarget.style.background = "var(--glass-bg)"; }}>＋</button>
+                <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", fontSize: 12, padding: "4px 10px", fontWeight: 800, transition: "all 0.2s" }}
+                  onMouseOver={e => { e.currentTarget.style.background = "var(--bg-hover)"; e.currentTarget.style.color = "var(--text-accent)"; }}
+                  onMouseOut={e => { e.currentTarget.style.background = "var(--glass-bg)"; e.currentTarget.style.color = "var(--text-muted)"; }}>＋</button>
               </div>
               {wt.length > 0 && (
                 <div style={{ overflowX: "auto", overflowY: "visible" }}>
                   <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 12, tableLayout: "fixed" }}>
                     <colgroup>
-                      <col style={{ width: 22 }} />
+                      <col style={{ width: 30 }} />
                       {currentCols.map(c => (
                         <col key={c.key} style={{ width: c.w }} />
                       ))}
-                      <col style={{ width: 60 }} />
+                      <col style={{ width: 100 }} />
                     </colgroup>
                     <thead>
                       <tr>
-                        <th style={{ width: 22, background: "var(--bg-alt)", borderBottom: "1px solid var(--border-light)", position: "sticky", left: 0, zIndex: 11 }} />
+                        <th style={{ width: 30, background: "var(--bg-alt)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--border-light)", position: "sticky", left: 0, zIndex: 11 }} />
                         {currentCols.map(c => (
-                          <th key={c.key} style={{ padding: "3px 4px", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "left", borderBottom: "1px solid var(--border-light)", whiteSpace: "nowrap", background: "var(--bg-alt)", width: c.w, overflow: "hidden", textOverflow: "ellipsis" }}>{c.label}</th>
+                          <th key={c.key} style={{ padding: "8px 4px", fontSize: 10, fontWeight: 800, color: "var(--text-muted)", textAlign: "center", verticalAlign: "middle", borderBottom: "1px solid var(--border-light)", whiteSpace: "nowrap", background: "var(--bg-alt)", backdropFilter: "blur(10px)", width: c.w, overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase", letterSpacing: "0.05em" }}>{c.label}</th>
                         ))}
-                        <th style={{ width: 100, position: "sticky", right: 0, background: "var(--bg-alt)", borderBottom: "1px solid var(--border-light)", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", padding: "3px 4px", zIndex: 12, textAlign: "center", boxShadow: "-2px 0 4px rgba(0,0,0,0.02)" }}>操作</th>
+                        <th style={{ width: 100, position: "sticky", right: 0, background: "var(--bg-alt)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--border-light)", fontSize: 10, fontWeight: 800, color: "var(--text-muted)", padding: "8px 4px", zIndex: 12, textAlign: "center", boxShadow: "-2px 0 4px rgba(0,0,0,0.02)" }}>操作</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1031,11 +1195,11 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                         const isDragTarget = dragOver === t.id;
                         return (
                           <tr key={t.id} style={{
-                            background: isDone ? "#f1f5f9" : (t.result === "キャンセル" ? "#fff1f2" : tc.bg),
-                            height: 48,
+                            background: isDone ? "var(--res-bg-done)" : (t.result === "キャンセル" ? "var(--res-bg-cancel)" : (t.result === "保留" ? "var(--res-bg-pending)" : (t.result === "他担当分" ? "var(--res-bg-other)" : tc.bg))),
+                            height: 72,
                             opacity: 1,
-                            borderTop: isDragTarget ? "3px solid #2563eb" : "none",
-                            transition: "border-top 0.1s",
+                            borderTop: isDragTarget ? "4px solid var(--text-accent)" : "none",
+                            transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                           }}
                             draggable
                             onDragStart={(e) => { setDragId(t.id); e.dataTransfer.effectAllowed = "move"; }}
@@ -1052,15 +1216,11 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                             onMouseOver={e => { if (!isDone) e.currentTarget.style.filter = "brightness(0.97)"; }}
                             onMouseOut={e => e.currentTarget.style.filter = "none"}>
                             {/* Grip handle */}
-                            <td style={{ width: 22, textAlign: "center", cursor: "grab", verticalAlign: "middle", borderBottom: "1px solid var(--border-light)" }}>
+                            <td style={{ width: 30, textAlign: "center", cursor: "grab", verticalAlign: "middle", borderBottom: "1px solid var(--border-light)" }}>
                               <IconGrip size={12} color="var(--text-muted)" />
                             </td>
                             {currentCols.map(c => {
-                              let bg = "transparent", clr = "var(--text-main)";
-                              if (c.key === "type" && !isDone) { bg = tc.badge; clr = tc.text; }
-                              if (c.key === "result" && t.result && !isDone) bg = resultColors[t.result] || "transparent";
-                              if (c.key === "result" && isDone) { bg = "var(--border-color)"; clr = "var(--text-muted)"; }
-                              if (c.key === "faultLevel" && t.faultLevel) { bg = FAULT_LEVEL_COLORS[t.faultLevel] || "transparent"; clr = "#fff"; }
+                              let clr = "var(--text-main)";
                               if (c.key === "area" || c.key === "prefecture") {
                                 clr = getRegionColor(t.area, t.prefecture);
                               }
@@ -1068,17 +1228,18 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                               const isEditing = editingCell && editingCell.id === t.id && editingCell.key === c.key;
                               const cellStyle = {
                                 padding: "2px 3px",
-                                whiteSpace: isWork ? "normal" : "nowrap",
-                                wordBreak: isWork ? "break-all" : "normal",
+                                whiteSpace: (isWork || c.key === "property") ? "normal" : "nowrap",
+                                wordBreak: (isWork || c.key === "property") ? "break-all" : "normal",
                                 overflow: "hidden",
-                                textOverflow: isWork ? "unset" : "ellipsis",
+                                textOverflow: (isWork || c.key === "property") ? "unset" : "ellipsis",
                                 width: c.w,
-                                height: 48,
+                                height: 72,
                                 verticalAlign: "middle",
+                                textAlign: (isWork || c.key === "property") ? "left" : "center",
                                 borderBottom: "1px solid var(--border-light)",
-                                background: isDone ? "var(--bg-body)" : (t.result === "キャンセル" ? "rgba(239, 68, 68, 0.2)" : (bg !== "transparent" ? bg : "transparent")),
+                                background: isDone ? "rgba(0,0,0,0.03)" : (t.result === "キャンセル" ? "rgba(239, 68, 68, 0.12)" : "transparent"),
                                 color: clr,
-                                fontWeight: c.key === "type" || c.key === "property" ? 700 : 500,
+                                fontWeight: c.key === "type" || c.key === "property" || c.key === "unit" ? 800 : 500,
                                 cursor: c.type === "auto" ? "default" : "text",
                               };
 
@@ -1131,24 +1292,50 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                                 <td key={c.key} style={cellStyle} title={c.type !== "auto" && c.key !== "result" ? "クリックして編集" : ""}
                                   onMouseOver={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = "var(--bg-hover, rgba(139,92,246,0.07))"; }}
                                   onMouseOut={e => { if (c.type !== "auto" && c.key !== "result") e.currentTarget.style.background = cellStyle.background; }}
-                                  onClick={e => { e.stopPropagation(); if (c.type !== "auto" && c.key !== "result") setEditingCell({ id: t.id, key: c.key }); }}>
-                                  {c.key === "work" ? (
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                                      <span style={{ flex: 1, fontWeight: 800, fontSize: 13, color: "var(--text-main)", wordBreak: "break-word" }}>{t[c.key] || ""}</span>
-                                      {typeof t.companion === "string" && (
-                                        <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", gap: 3, background: "rgba(128,128,128,0.15)", padding: "2px 6px", borderRadius: 4 }}>
-                                          <IconPeople size={11} color="var(--text-muted)" />
-                                          <span style={{ fontWeight: 700, fontSize: 12, color: "var(--text-sub)" }}>{t.companion.split(/[\s　]+/)[0]}</span>
-                                        </span>
-                                      )}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    if (c.key === "work") {
+                                      if (onView) onView(t);
+                                    } else if (c.type !== "auto" && c.key !== "result") {
+                                      setEditingCell({ id: t.id, key: c.key });
+                                    }
+                                  }}>
+                                  {c.key === "work" || c.key === "property" ? (
+                                    <div style={{
+                                      display: "-webkit-box",
+                                      WebkitLineClamp: c.key === "work" ? 3 : 2,
+                                      WebkitBoxOrient: "vertical",
+                                      overflow: "hidden",
+                                      fontSize: c.key === "work" ? 12 : 13,
+                                      lineHeight: 1.3,
+                                      color: "var(--text-main)",
+                                      fontWeight: c.key === "property" ? 800 : 500,
+                                      width: "100%",
+                                      wordBreak: "break-all"
+                                    }}>
+                                      {t[c.key] || ""}
                                     </div>
+                                  ) : c.key === "kubun" && t.kubun ? (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: kubunColors[t.kubun]?.text || "inherit", border: `1px solid ${kubunColors[t.kubun]?.border || "var(--border-color)"}` }}>{t.kubun}</span>
+                                  ) : c.key === "type" && t.type ? (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: tc?.badge || "var(--text-main)", border: `1px solid ${tc?.badge || "var(--border-color)"}` }}>{t.type}</span>
+                                  ) : c.key === "unit" && t.unit ? (
+                                    <span style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.08)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>
+                                  ) : c.key === "time" && t.time ? (
+                                    <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "transparent", color: "#d97706", border: "1px solid rgba(245,158,11,0.4)" }}>{formatExcelTime(t.time) || t.time}</span>
+                                  ) : (c.key === "area" || c.key === "prefecture") && t[c.key] ? (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "transparent", color: getRegionColor(t.area, t.prefecture), border: `1px solid ${getRegionColor(t.area, t.prefecture)}` }}>{t[c.key]}</span>
+                                  ) : c.key === "timeSlot" && t.timeSlot ? (
+                                    <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 4px", borderRadius: 3, background: "rgba(59,130,246,0.1)", color: "#2563eb", border: "1px solid rgba(37,99,235,0.2)" }}>{t.timeSlot}</span>
+                                  ) : c.key === "requestNo" && t.requestNo ? (
+                                    <span style={{ fontSize: 10, fontWeight: 500, color: "var(--text-muted)", background: "var(--bg-alt)", padding: "1px 4px", borderRadius: 2 }}>{t.requestNo}</span>
                                   ) : (
-                                    c.key === "time" ? formatExcelTime(t[c.key]) : (t[c.key] || "")
+                                    t[c.key] || ""
                                   )}
                                 </td>
                               );
                             })}
-                            <td style={{ position: "sticky", right: 0, zIndex: 10, background: isDone ? "var(--bg-alt)" : "var(--bg-app)", padding: "4px", borderBottom: "1px solid var(--border-light)", width: 90, height: 48, verticalAlign: "middle", boxShadow: "-2px 0 4px rgba(0,0,0,0.05)" }}>
+                            <td style={{ position: "sticky", right: 0, zIndex: 10, background: isDone ? "var(--bg-alt)" : "var(--bg-app)", padding: "4px", borderBottom: "1px solid var(--border-light)", width: 100, height: 48, verticalAlign: "middle", boxShadow: "-2px 0 4px rgba(0,0,0,0.05)" }}>
                               <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
                                   {!isDone ? (
@@ -1204,7 +1391,7 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                             setDragOver(null); setDragId(null);
                           }}
                         >
-                          <td colSpan={cols.length + 2} style={{ height: 16, borderTop: dragOver === `end_${w.id}` ? "3px solid #2563eb" : "none", transition: "border-top 0.1s" }} />
+                          <td colSpan={currentCols.length + 2} style={{ height: 16, borderTop: dragOver === `end_${w.id}` ? "3px solid #2563eb" : "none", transition: "border-top 0.1s" }} />
                         </tr>
                       )}
                     </tbody>
@@ -1247,10 +1434,15 @@ function ProcessingPool({ tickets, workers, allWorkers, onEdit, onDelete, onAssi
       </div>
 
       {/* Search */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, padding: "8px 12px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8, marginBottom: 12, padding: "10px 16px",
+        background: "var(--bg-alt)", backdropFilter: "blur(10px)",
+        borderRadius: 10, border: "1px solid var(--border-color)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)"
+      }}>
         <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         <input type="text" placeholder="依頼番号・号機・物件名で検索..." value={search} onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, border: "none", background: "transparent", fontSize: 12, outline: "none", color: "var(--text-main)" }} />
+          style={{ flex: 1, border: "none", background: "transparent", fontSize: 13, outline: "none", color: "var(--text-main)", fontWeight: 500 }} />
         {search && <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 14 }}>×</button>}
       </div>
 
@@ -1299,18 +1491,24 @@ function ProcessingPool({ tickets, workers, allWorkers, onEdit, onDelete, onAssi
             const tc = typeColors[t.type] || typeColors["その他"];
             const w = workers.find(x => String(x.id) === t.person || x.name === t.person);
             return (
-              <div key={t.id} style={{ border: "1px solid var(--border-color)", borderRadius: 6, background: "var(--bg-app)", overflow: "hidden", display: "flex", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                <div style={{ width: 4, background: tc.badge, flexShrink: 0 }} />
-                <div style={{ flex: 1, padding: "8px 12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 3, background: tc.bg, color: tc.text, fontWeight: 700 }}>{t.type}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-main)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.property || "未設定"}</span>
+              <div key={t.id} className="glass-card" style={{
+                borderRadius: 14,
+                overflow: "hidden",
+                display: "flex",
+                boxShadow: "var(--shadow-glass)",
+                borderColor: "var(--glass-border)"
+              }}>
+                <div style={{ width: 4, background: tc?.badge || "var(--border-color)", flexShrink: 0 }} />
+                <div style={{ flex: 1, padding: "8px 12px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: "rgba(255,255,255,0.03)", color: tc?.badge || "var(--text-muted)", border: `1px solid ${tc?.badge || "var(--border-color)"}`, flexShrink: 0 }}>{t.type}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.property || "未設定"}</span>
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text-main)", fontWeight: 800, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.2 }}>{t.work}</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>
-                    {t.requestNo && <span style={{ background: "var(--bg-alt)", padding: "1px 5px", borderRadius: 2 }}>{t.requestNo}</span>}
-                    {t.unit && <span>号機:{t.unit}</span>}
-                    {w && <span style={{ color: w.color, fontWeight: 600 }}>{w.name}</span>}
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>
+                    {t.requestNo && <span style={{ fontSize: 10, fontWeight: 500, color: "var(--text-muted)", background: "var(--bg-alt)", padding: "1px 4px", borderRadius: 2 }}>{t.requestNo}</span>}
+                    {t.unit && <span style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "rgba(100,116,139,0.12)", color: "var(--text-sub)", border: "1px solid rgba(100,116,139,0.15)" }}>{t.unit}</span>}
+                    {w && <span style={{ color: w.color, fontWeight: 700 }}>{w.name}</span>}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <button onClick={() => { setAssignTicket(t); setAssignDate(""); setAssignWorker(t.person || ""); }} title="配置" style={{ display: "flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 4, border: "1px solid #2563eb", background: "#eff6ff", color: "#2563eb", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "background 0.15s" }}
@@ -1345,81 +1543,116 @@ function TicketDetailModal({ ticket, workers, perms, onClose, onEdit, onDelete }
   const w = workers.find(x => String(x.id) === ticket.person);
   const d = new Date(ticket.date + "T00:00:00");
   const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-  const labelStyle = { fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 2 };
-  const valStyle = { fontSize: 14, fontWeight: 500, color: "var(--text-main)", minHeight: 20, padding: "4px 8px", background: "var(--bg-alt)", borderRadius: 4, wordBreak: "break-all" };
+  const labelStyle = { fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4, marginLeft: 2 };
+  const valStyle = { 
+    fontSize: 14, 
+    fontWeight: 500, 
+    color: "var(--text-main)", 
+    height: 38, 
+    display: "flex", 
+    alignItems: "center", 
+    padding: "0 12px", 
+    background: "rgba(128,128,128,0.05)", 
+    border: "1px solid var(--border-light)", 
+    borderRadius: 6, 
+    wordBreak: "break-all",
+    boxSizing: "border-box",
+    overflow: "hidden"
+  };
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "var(--bg-app)", borderRadius: 10, padding: 0, width: 620, maxHeight: "85vh", overflowY: "auto", boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div style={{ background: tc.bg, borderRadius: "10px 10px 0 0", padding: "16px 22px", borderBottom: `3px solid ${tc.badge}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: tc.text, padding: "3px 12px", background: tc.badge, borderRadius: 4 }}>{ticket.type || "未設定"}</span>
-            <span style={{ fontSize: 18, fontWeight: 800, color: tc.text }}>{ticket.property || "物件名なし"}</span>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }} onClick={onClose}>
+      <div className="glass-panel" style={{
+        width: 720, maxWidth: "100%", maxHeight: "90vh", borderRadius: 24, overflow: "hidden", display: "flex", flexDirection: "column",
+        boxShadow: "var(--shadow-lg), 0 0 100px rgba(0,0,0,0.2)",
+        borderColor: "var(--glass-border)",
+        animation: "modalFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+      }} onClick={e => e.stopPropagation()}>
+        {/* Header (Title: タイプ 号機 物件名) */}
+        <div style={{ background: tc?.bg || "var(--bg-app)", borderRadius: "24px 24px 0 0", padding: "18px 24px", borderBottom: `3px solid ${tc?.badge || "var(--border-color)"}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: tc?.badge || "var(--text-main)", padding: "4px 10px", background: "rgba(255,255,255,0.03)", border: `2px solid ${tc?.badge || "var(--border-color)"}`, borderRadius: 6, lineHeight: 1, alignSelf: "center" }}>{ticket.type || "未設定"}</span>
+            <span style={{ fontSize: 16, fontWeight: 800, color: tc.text, opacity: 0.9, lineHeight: 1, whiteSpace: "nowrap" }}>{ticket.unit || "号機なし"}</span>
+            <span style={{ 
+              fontSize: 20, 
+              fontWeight: 800, 
+              color: tc.text, 
+              lineHeight: 1.2,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden"
+            }}>{ticket.property || "物件名なし"}</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: tc.text, opacity: 0.7, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: "rgba(0,0,0,0.1)", border: "none", width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: tc.text, transition: "0.2s" }} className="hover-scale">
+            <IconX size={18} color={tc.text} />
+          </button>
         </div>
 
-        <div style={{ padding: "18px 22px" }}>
-          {/* Date + Worker */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, padding: "10px 14px", background: "var(--bg-alt)", borderRadius: 6, border: "1px solid var(--border-light)" }}>
-            <div>
-              <div style={labelStyle}><IconCalendar size={10} color="var(--text-muted)" /> 日付</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{d.getFullYear()}年{d.getMonth() + 1}月{d.getDate()}日（{dow}）</div>
+        <div style={{ padding: "20px 24px", overflowY: "auto" }}>
+          {/* Sub Row (Date, Time, Person, Companion, TIME) */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 24px", marginBottom: 24, padding: "14px 18px", background: "var(--bg-alt)", borderRadius: 14, border: "1px solid var(--border-light)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <IconCalendar size={16} color="var(--text-muted)" />
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{d.getFullYear()}/{d.getMonth() + 1}/{d.getDate()}({dow})</div>
             </div>
-            <div style={{ width: 1, height: 32, background: "var(--border-color)" }} />
-            <div>
-              <div style={labelStyle}><IconPerson size={10} color="var(--text-muted)" /> 対応者</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <IconClock size={16} color="var(--text-muted)" />
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{formatExcelTime(ticket.time) || "時間未指定"}</div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <IconPerson size={16} color="var(--text-muted)" />
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {w && <UserAvatar user={w} size={26} />}
                 <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{w ? w.name : (ticket.person || "未割当")}</span>
               </div>
             </div>
-            {ticket.result && (
-              <>
-                <div style={{ width: 1, height: 32, background: "var(--border-color)" }} />
-                <div>
-                  <div style={labelStyle}><IconClipboard size={10} color="var(--text-muted)" /> 結果</div>
-                  <span style={{ padding: "3px 10px", borderRadius: 4, fontSize: 13, fontWeight: 700, background: resultColors[ticket.result] || "var(--bg-alt)", border: "1px solid var(--border-light)", color: "var(--text-main)" }}>{ticket.result}</span>
-                </div>
-              </>
+            {ticket.companion && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <IconPeople size={16} color="var(--text-muted)" />
+                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{ticket.companion}</span>
+              </div>
             )}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", letterSpacing: "0.05em" }}>TIME</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{ticket.timeSlot || "—"}</span>
+            </div>
           </div>
 
-          {/* Main info grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px 14px", marginBottom: 16 }}>
+          {/* Item 1: Grid (RequestNo, BOX, Category, Result / Area, Prefecture, Travel, Course) */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px 20px", marginBottom: 24, alignItems: "start" }}>
             {[
+              { label: "依頼番号", val: ticket.requestNo },
               { label: "BOX", val: ticket.box },
-              { label: "号機", val: ticket.unit },
               { label: "種別", val: ticket.category },
-              { label: "時間指定", val: formatExcelTime(ticket.time) },
+              { label: "結果", val: ticket.result, isResult: true },
               { label: "エリア", val: ticket.area },
               { label: "県別", val: ticket.prefecture },
               { label: "移動", val: ticket.travel },
-              { label: "同行者", val: ticket.companion },
-              { label: "依頼番号", val: ticket.requestNo },
-              { label: "TIME", val: ticket.timeSlot },
               { label: "コース", val: ticket.course },
-            ].map(({ label, val }) => (
+            ].map(({ label, val, isResult }) => (
               <div key={label}>
                 <div style={labelStyle}>{label}</div>
-                <div style={valStyle}>{val || "—"}</div>
+                {isResult ? (
+                  <div style={{ ...valStyle, background: val ? (resultColors[val] || "var(--bg-alt)") : "rgba(128,128,128,0.05)", fontWeight: val ? 700 : 500, color: val ? "var(--text-main)" : "var(--text-muted)" }}>{val || "—"}</div>
+                ) : (
+                  <div style={valStyle}>{val || "—"}</div>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Work content (full width) */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={labelStyle}><IconWrench size={10} color="var(--text-muted)" /> 作業内容</div>
-            <div style={{ ...valStyle, fontSize: 15, minHeight: 48, lineHeight: "22px", whiteSpace: "pre-wrap" }}>{ticket.work || "—"}</div>
+          {/* Item 2: Work content (Full width, large) */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={labelStyle}><IconWrench size={12} color="var(--text-muted)" /> 作業内容</div>
+            <div style={{ ...valStyle, height: "auto", minHeight: 140, padding: "16px 20px", alignItems: "flex-start", lineHeight: "1.7", whiteSpace: "pre-wrap", background: "rgba(30,64,175,0.04)", border: "1px solid rgba(30,64,175,0.12)", color: "var(--text-main)", fontSize: 15.5 }}>{ticket.work || "—"}</div>
           </div>
 
-          {/* Notes */}
-          {ticket.notes && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={labelStyle}><IconNote size={10} color="var(--text-muted)" /> 備考</div>
-              <div style={{ ...valStyle, minHeight: 32, lineHeight: "20px", whiteSpace: "pre-wrap" }}>{ticket.notes}</div>
-            </div>
-          )}
+          {/* Item 3: Notes */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={labelStyle}><IconNote size={12} color="var(--text-muted)" /> 備考</div>
+            <div style={{ ...valStyle, height: "auto", minHeight: 48, padding: "12px 18px", alignItems: "flex-start", lineHeight: "1.6", whiteSpace: "pre-wrap", background: "rgba(0,0,0,0.03)" }}>{ticket.notes || "なし"}</div>
+          </div>
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 14, borderTop: "1px solid var(--border-color)" }}>
@@ -1427,7 +1660,7 @@ function TicketDetailModal({ ticket, workers, perms, onClose, onEdit, onDelete }
               <button onClick={() => { if (window.confirm("本当に削除しますか？")) { onClose(); onDelete(ticket.id); } }} style={{ padding: "7px 16px", borderRadius: 4, border: "1px solid #fca5a5", background: "var(--bg-app)", color: "#dc2626", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconTrash size={13} color="#dc2626" /> 削除</button>
             )}
             {perms?.canEditTicket(ticket) && (
-              <button onClick={() => { onClose(); onEdit(ticket); }} style={{ padding: "7px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconEdit size={13} color="#fff" /> 編集</button>
+              <button onClick={() => { onClose(); onEdit({ ...ticket, _lockPerson: true }); }} style={{ padding: "7px 20px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}><IconEdit size={13} color="#fff" /> 編集</button>
             )}
           </div>
         </div>
@@ -1437,7 +1670,11 @@ function TicketDetailModal({ ticket, workers, perms, onClose, onEdit, onDelete }
 }
 
 // --- Form Modal ---
-function TicketFormModal({ ticket, perms, onSave, onClose, isNew, workers }) {
+function TicketFormModal({ ticket, perms, onSave, onClose, isNew, workers, lockPerson }) {
+  const [isManualUnlock, setIsManualUnlock] = useState(false);
+  const isLocked = (lockPerson || ticket?._lockPerson) && !isManualUnlock;
+  const canUnlock = perms?.isAdmin || perms?.userRole === "dispatcher";
+
   const [form, setForm] = useState({ ...ticket });
   const set = (k, v) => {
     if (k === "faultCategory") {
@@ -1484,24 +1721,54 @@ function TicketFormModal({ ticket, perms, onSave, onClose, isNew, workers }) {
   }, [form.unit]);
   const iStyle = { width: "100%", padding: "5px 7px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 12, boxSizing: "border-box", background: "var(--bg-input)", color: "var(--text-main)" };
   return (
-    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "var(--bg-app)", borderRadius: 8, padding: 22, width: 640, maxHeight: "85vh", overflowY: "auto", boxShadow: "var(--shadow)" }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 20 }} onClick={onClose}>
+      <div className="glass-panel" style={{
+        width: 760, maxWidth: "100%", maxHeight: "92vh", borderRadius: 28, overflow: "hidden", display: "flex", flexDirection: "column",
+        boxShadow: "var(--shadow-lg), 0 0 120px rgba(0,0,0,0.25)",
+        borderColor: "var(--glass-border)",
+        animation: "modalFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        padding: 22
+      }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "var(--text-main)" }}>{isNew ? "新規チケット" : "チケット編集"}</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text-muted)" }}>✕</button>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>日付</label>
-          <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ ...iStyle, fontSize: 13 }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>日付</label>
+            {isLocked && canUnlock && (
+              <button onClick={() => setIsManualUnlock(true)} title="ロック解除" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3, color: "var(--text-accent)", fontSize: 10, fontWeight: 700 }}>
+                <IconLock size={12} /> ロック中
+              </button>
+            )}
+            {!isLocked && (lockPerson || ticket?._lockPerson) && canUnlock && (
+              <button onClick={() => setIsManualUnlock(false)} title="再ロック" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3, color: "var(--text-muted)", fontSize: 10 }}>
+                <IconLockOpen size={12} /> 解除済み
+              </button>
+            )}
+          </div>
+          <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ ...iStyle, fontSize: 13, opacity: isLocked ? 0.6 : 1, pointerEvents: isLocked ? "none" : "auto" }} readOnly={isLocked} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px 10px", marginBottom: 12 }}>
           {ALL_COLS.filter(c => c.key !== "notes" && c.key !== "work").map(c => (
             <div key={c.key}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: c.key === "faultLevel" && form.faultLevel ? FAULT_LEVEL_COLORS[form.faultLevel] : "var(--text-muted)" }}>
-                {c.label}{c.key === "faultLevel" && form.faultLevel ? ` (${form.faultLevel})` : ""}
-              </label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: c.key === "faultLevel" && form.faultLevel ? FAULT_LEVEL_COLORS[form.faultLevel] : "var(--text-muted)" }}>
+                  {c.label}{c.key === "faultLevel" && form.faultLevel ? ` (${form.faultLevel})` : ""}
+                </label>
+                {c.key === "person" && isLocked && canUnlock && (
+                  <button onClick={() => setIsManualUnlock(true)} title="ロック解除" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-accent)" }}>
+                    <IconLock size={12} />
+                  </button>
+                )}
+                {c.key === "person" && !isLocked && (lockPerson || ticket?._lockPerson) && canUnlock && (
+                  <button onClick={() => setIsManualUnlock(false)} title="再ロック" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-muted)" }}>
+                    <IconLockOpen size={12} />
+                  </button>
+                )}
+              </div>
               {c.key === "person" || c.key === "companion" ? (
-                <select value={form[c.key]} onChange={e => set(c.key, e.target.value)} style={iStyle}>
+                <select value={form[c.key]} onChange={e => set(c.key, e.target.value)} style={{ ...iStyle, opacity: (c.key === "person" && isLocked) ? 0.6 : 1, pointerEvents: (c.key === "person" && isLocked) ? "none" : "auto" }} disabled={c.key === "person" && isLocked}>
                   <option value="">—</option>
                   {workers
                     .filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))
@@ -1620,13 +1887,15 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
       if (!newTypeName.trim()) { alert("タイプ名を入力してください"); return; }
       if (typeList.some((t, i) => i !== editingTypeIdx && t.name === newTypeName.trim())) { alert("同名のタイプが存在します"); return; }
       const n = [...typeList];
-      n[editingTypeIdx] = { name: newTypeName.trim(), color: TYPE_COLOR_PRESETS[selectedPreset] };
+      const color = TYPE_COLOR_PRESETS[selectedPreset] || TYPE_COLOR_PRESETS[0];
+      n[editingTypeIdx] = { name: newTypeName.trim(), color };
       setTypeList(n);
       setEditingTypeIdx(null);
     } else {
       if (!newTypeName.trim()) return;
       if (typeList.some(t => t.name === newTypeName.trim())) { alert("同名のタイプが存在します"); return; }
-      setTypeList([...typeList, { name: newTypeName.trim(), color: TYPE_COLOR_PRESETS[selectedPreset] }]);
+      const color = TYPE_COLOR_PRESETS[selectedPreset] || TYPE_COLOR_PRESETS[0];
+      setTypeList([...typeList, { name: newTypeName.trim(), color }]);
     }
     setNewTypeName("");
   };
@@ -1732,8 +2001,14 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={onClose}>
-      <div style={{ background: "var(--bg-app)", borderRadius: 8, width: 800, maxWidth: "95%", height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow)", overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "var(--bg-modal-overlay)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={onClose}>
+      <div className="glass-panel" style={{
+        width: 840, maxWidth: "95%", height: "92vh", borderRadius: 32, display: "flex", flexDirection: "column",
+        boxShadow: "var(--shadow-lg), 0 0 150px rgba(0,0,0,0.3)",
+        borderColor: "var(--glass-border)",
+        overflow: "hidden",
+        animation: "modalFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
+      }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ padding: "16px 24px", background: "var(--bg-header)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <h2 style={{ margin: 0, color: "var(--bg-header-text)", fontSize: 18, fontWeight: 900 }}>管理者設定 / Master Data</h2>
@@ -1765,7 +2040,7 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
                 <div style={{ background: "var(--bg-alt)", padding: 16, borderRadius: 8, border: "1px solid var(--border-color)" }}>
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>タイプ名</label>
-                    <input type="text" value={newTypeName} onChange={e => setNewTypeName(e.target.value)} placeholder="例: 定期点検" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }} />
+                    <input type="text" value={newTypeName} onChange={e => setNewTypeName(e.target.value)} placeholder="例: 定期点検" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)", boxSizing: "border-box" }} />
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>カラープリセット</label>
@@ -1788,11 +2063,16 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
                   {typeList.map((t, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "var(--bg-app)", border: "1px solid var(--border-color)", borderRadius: 6, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: "50%", background: t.color.badge }} />
+                        <span style={{ width: 14, height: 14, borderRadius: "50%", background: t.color?.badge || "#cbd5e1" }} />
                         <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-main)" }}>{t.name}</span>
                       </div>
                       <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => { setEditingTypeIdx(i); setNewTypeName(t.name); setSelectedPreset(TYPE_COLOR_PRESETS.findIndex(p => p.badge === t.color.badge) || 0); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-muted)" }} onMouseOver={e => e.currentTarget.style.color = "#3b82f6"} onMouseOut={e => e.currentTarget.style.color = "#94a3b8"}><IconEdit size={14} /></button>
+                        <button onClick={() => { 
+                          setEditingTypeIdx(i); 
+                          setNewTypeName(t.name); 
+                          const idx = TYPE_COLOR_PRESETS.findIndex(p => p.badge === t.color?.badge);
+                          setSelectedPreset(idx === -1 ? 0 : idx); 
+                        }} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-muted)" }} onMouseOver={e => e.currentTarget.style.color = "#3b82f6"} onMouseOut={e => e.currentTarget.style.color = "#94a3b8"}><IconEdit size={14} /></button>
                         <button onClick={() => removeType(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-muted)" }} onMouseOver={e => e.currentTarget.style.color = "#ef4444"} onMouseOut={e => e.currentTarget.style.color = "#94a3b8"}><IconTrash size={14} /></button>
                       </div>
                     </div>
@@ -1960,17 +2240,14 @@ function MiniCalendarWidget({ onNavigate, todayStr, initialDate }) {
   const nextM = () => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); };
 
   return (
-    <div style={{
+    <div className="glass-panel" style={{
       position: "fixed", left: pos.x, top: pos.y, zIndex: 8000,
-      width: 220,
-      background: "var(--glass-bg)",
-      backdropFilter: "blur(24px) saturate(1.8)",
-      WebkitBackdropFilter: "blur(24px) saturate(1.8)",
-      border: "1px solid var(--glass-border)",
-      borderRadius: 12,
-      boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)",
+      width: 230,
+      borderRadius: 20,
+      boxShadow: "var(--shadow-lg), 0 10px 40px rgba(0,0,0,0.2)",
       overflow: "hidden",
       userSelect: "none",
+      animation: "modalFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
     }}>
       {/* Drag handle / header */}
       <div onMouseDown={handleMouseDown} style={{
@@ -2006,12 +2283,13 @@ function MiniCalendarWidget({ onNavigate, todayStr, initialDate }) {
               if (!cell) return <div key={ci} />;
               const isToday = cell.dateStr === todayStr;
               const isSun = ci === 6, isSat = ci === 5;
+              const holidayName = isHoliday(cell.dateStr);
               return (
                 <button key={ci} onClick={() => onNavigate(cell.dateStr)} style={{
                   width: "100%", aspectRatio: "1", border: "none", borderRadius: 5, cursor: "pointer",
                   fontSize: 10, fontWeight: isToday ? 900 : 600,
                   background: isToday ? "var(--accent-today)" : "transparent",
-                  color: isToday ? "#fff" : isSun ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-main)",
+                  color: isToday ? "#fff" : (isSun || !!holidayName) ? "var(--color-sun)" : isSat ? "var(--color-sat)" : "var(--text-main)",
                   transition: "background 0.15s, transform 0.1s",
                   padding: 0,
                 }}
@@ -2035,7 +2313,6 @@ function LoginScreen() {
       provider: 'azure',
       options: {
         scopes: 'email profile',
-        // 末尾のスラッシュなどを省き、Supabaseの許可URLと厳密に一致させるための処理
         redirectTo: window.location.origin.replace(/\/$/, '')
       }
     });
@@ -2046,16 +2323,69 @@ function LoginScreen() {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
-      <div style={{ background: "#fff", padding: "40px 32px", borderRadius: 12, boxShadow: "0 10px 25px rgba(0,0,0,0.05)", textAlign: "center", maxWidth: 400, width: "100%" }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#1e293b", margin: "0 0 12px" }}>Schedule System</h1>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 32px" }}>Microsoft アカウントでサインインしてください</p>
+    <div style={{
+      height: "100vh", width: "100vw", display: "flex", alignItems: "center", justifyContent: "center",
+      background: "radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%)",
+      margin: 0, padding: 0, overflow: "hidden", position: "relative",
+      fontFamily: "'Inter', 'Noto Sans JP', sans-serif"
+    }}>
+      {/* Abstract Background Elements */}
+      <div style={{ position: "absolute", top: "10%", left: "5%", width: "40vw", height: "40vw", background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(60px)" }} />
+      <div style={{ position: "absolute", bottom: "5%", right: "5%", width: "45vw", height: "45vw", background: "radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(80px)" }} />
+      
+      <div style={{
+        background: "rgba(255, 255, 255, 0.03)",
+        backdropFilter: "blur(24px) saturate(1.8)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.8)",
+        padding: "54px 44px",
+        borderRadius: 28,
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)",
+        textAlign: "center",
+        maxWidth: 440,
+        width: "90%",
+        zIndex: 10,
+        animation: "fadeIn 0.8s ease-out"
+      }}>
+        <h1 style={{
+          fontSize: 34, fontWeight: 900, color: "#fff", margin: "0 0 10px",
+          letterSpacing: "-0.04em", lineHeight: 1.1
+        }}>Schedule System</h1>
+        <p style={{
+          fontSize: 14, color: "rgba(255, 255, 255, 0.55)", margin: "0 0 44px",
+          fontWeight: 500, letterSpacing: "0.02em"
+        }}>Microsoft アカウントでサインインしてください</p>
+        
         <button
           onClick={handleLogin}
           disabled={loading}
-          style={{ width: "100%", padding: "12px", background: "#fff", color: "#333", border: "1px solid #c8c8c8", borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          onMouseOver={e => {
+            if (!loading) {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.25)";
+              e.currentTarget.style.background = "#fff";
+              e.currentTarget.style.color = "#000";
+            }
+          }}
+          onMouseOut={e => {
+            if (!loading) {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+              e.currentTarget.style.color = "#fff";
+            }
+          }}
+          style={{
+            width: "100%", padding: "16px", background: "rgba(255, 255, 255, 0.1)",
+            color: "#ffffff", border: "1px solid rgba(255, 255, 255, 0.2)", borderRadius: 14, fontSize: 15,
+            fontWeight: 800, cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center",
+            justifyContent: "center", gap: 14, transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            backdropFilter: "blur(5px)"
+          }}
         >
-          {loading ? "接続中..." : (
+          {loading ? "認証中..." : (
             <>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 21 21">
                 <rect x="1" y="1" width="9" height="9" fill="#f25022" />
@@ -2068,6 +2398,14 @@ function LoginScreen() {
           )}
         </button>
       </div>
+
+      <style>{`
+        body { margin: 0; padding: 0; overflow: hidden; }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -2079,12 +2417,16 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 20, color: "red", background: "#fff", height: "100vh" }}>
-          <h2>アプリの描画中にエラーが発生しました</h2>
-          <pre style={{ fontSize: 12, overflow: "auto" }}>{this.state.error?.toString()}</pre>
-          <button onClick={() => window.location.reload()} style={{ padding: "8px 16px", marginTop: 20 }}>リロード</button>
+        <div style={{ padding: 20, color: "red", background: "#fff", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <h2 style={{ fontSize: 18, marginBottom: 12 }}>アプリの描画中にエラーが発生しました</h2>
+          <pre style={{ fontSize: 11, background: "#f1f5f9", padding: 12, borderRadius: 6, maxWidth: "90%", overflow: "auto" }}>{this.state.error?.toString()}</pre>
+          <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+            <button onClick={() => window.location.reload()} style={{ padding: "8px 24px", borderRadius: 4, background: "#1e293b", color: "#fff", cursor: "pointer", border: "none" }}>リロード</button>
+            <button onClick={() => { this.setState({ hasError: false, error: null }); }} style={{ padding: "8px 24px", borderRadius: 4, background: "#e2e8f0", color: "#1e293b", cursor: "pointer", border: "1px solid #cbd5e1" }}>エラー解消を試みる</button>
+          </div>
         </div>
       );
+
     }
     return this.props.children;
   }
@@ -2094,181 +2436,203 @@ class ErrorBoundary extends React.Component {
 const GlobalStyles = () => (
   <style>{`
     :root {
-      /* Light Mode (Default) */
-      --bg-body: #eef2f7;
-      --bg-body-gradient: linear-gradient(135deg, #e8f0fe 0%, #f0e8ff 40%, #e0f2fe 100%);
-      --bg-app: rgba(255, 255, 255, 0.85);
-      --bg-header: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      /* Light Mode - Premium Glass */
+      --bg-body: #f1f5f9;
+      --bg-body-gradient: radial-gradient(circle at top left, #f8fafc 0%, #e2e8f0 100%);
+      --bg-app: rgba(255, 255, 255, 0.4);
+      --bg-header: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
       --bg-header-solid: #0f172a;
       --bg-header-text: #ffffff;
-      --bg-alt: rgba(248, 250, 252, 0.9);
-      --bg-hover: rgba(139,92,246,0.06);
-      --bg-input: rgba(255, 255, 255, 0.9);
-      --bg-modal-overlay: rgba(15, 23, 42, 0.6);
-      --border-color: rgba(203, 213, 225, 0.8);
-      --border-light: rgba(226, 232, 240, 0.7);
-      --text-main: #1e293b;
-      --text-sub: #475569;
+      --bg-alt: rgba(255, 255, 255, 0.3);
+      --bg-hover: rgba(59, 130, 246, 0.08);
+      --bg-input: rgba(255, 255, 255, 0.5);
+      --bg-modal-overlay: rgba(15, 23, 42, 0.3);
+      --border-color: rgba(255, 255, 255, 0.35);
+      --border-light: rgba(255, 255, 255, 0.25);
+      --text-main: #0f172a;
+      --text-sub: #334155;
       --text-muted: #64748b;
       --text-accent: #2563eb;
       --text-on-dark: #ffffff;
       --color-danger-dark: #ef4444;
-      --color-warning-light: rgba(254, 243, 199, 0.9);
+      --color-warning-light: rgba(254, 243, 199, 0.5);
       --color-warning-dark: #92400e;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.6);
-      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 10px -3px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.5);
-      --shadow-glass: 0 8px 32px rgba(31,38,135,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
-      --calendar-grid-border: rgba(203, 213, 225, 0.6);
-      --calendar-cell-border: rgba(255,255,255,0.8);
-      --bg-sat: rgba(241, 247, 255, 0.95);
-      --bg-sun: rgba(255, 241, 242, 0.95);
-      --bg-today: rgba(240, 249, 255, 0.98);
-      --accent-today: #0ea5e9;
-      --glass-bg: rgba(255, 255, 255, 0.72);
-      --glass-border: rgba(255, 255, 255, 0.6);
-      --glass-bg-panel: rgba(255, 255, 255, 0.65);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-glass: 0 8px 32px rgba(31,38,135,0.05), inset 0 1px 1px rgba(255,255,255,0.4);
+      --shadow-glass-intense: 0 12px 40px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+      --calendar-grid-border: rgba(255, 255, 255, 0.35);
+      --calendar-cell-border: rgba(255, 255, 255, 0.2);
+      --bg-sat: rgba(241, 247, 255, 0.4);
+      --bg-sun: rgba(255, 241, 242, 0.4);
+      --bg-today: rgba(37, 99, 235, 0.08);
+      --accent-today: #2563eb;
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-bg-panel: rgba(255, 255, 255, 0.45);
+      --glass-saturation: 2.2;
+      --glass-blur: 32px;
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 10px;
       --color-sat: #1d4ed8;
       --color-sun: #dc2626;
 
       /* Type Colors - Light */
-      --type-bg-inspect: rgba(255, 247, 237, 0.9); --type-badge-inspect: #f97316; --type-text-inspect: #9a3412;
-      --type-bg-repair: rgba(240, 249, 255, 0.9); --type-badge-repair: #0ea5e9; --type-text-repair: #0c4a6e;
-      --type-bg-install: rgba(240, 253, 244, 0.9); --type-badge-install: #22c55e; --type-text-install: #166534;
-      --type-bg-remove: rgba(250, 245, 255, 0.9); --type-badge-remove: #a855f7; --type-text-remove: #6b21a8;
-      --type-bg-maint: rgba(255, 241, 242, 0.9); --type-badge-maint: #f43f5e; --type-text-maint: #9f1239;
-      --type-bg-other: rgba(241, 245, 249, 0.9); --type-badge-other: #64748b; --type-text-other: #334155;
+      --type-bg-inspect: rgba(255, 247, 237, 0.5); --type-badge-inspect: #f97316; --type-text-inspect: #9a3412;
+      --type-bg-repair: rgba(240, 249, 255, 0.5); --type-badge-repair: #0ea5e9; --type-text-repair: #0c4a6e;
+      --type-bg-install: rgba(240, 253, 244, 0.5); --type-badge-install: #22c55e; --type-text-install: #166534;
+      --type-bg-remove: rgba(250, 245, 255, 0.5); --type-badge-remove: #a855f7; --type-text-remove: #6b21a8;
+      --type-bg-maint: rgba(255, 241, 242, 0.5); --type-badge-maint: #f43f5e; --type-text-maint: #9f1239;
+      --type-bg-other: rgba(241, 245, 249, 0.5); --type-badge-other: #64748b; --type-text-other: #334155;
 
       /* Result Colors - Light */
-      --res-bg-done: #dcfce7;
-      --res-bg-cancel: #fee2e2;
-      --res-bg-pending: #fef3c7;
-      --res-bg-other: #f1f5f9;
+      --res-bg-done: rgba(220, 252, 231, 0.6);
+      --res-bg-cancel: rgba(254, 226, 226, 0.6);
+      --res-bg-pending: rgba(254, 243, 199, 0.6);
+      --res-bg-other: rgba(241, 245, 249, 0.6);
     }
 
     [data-theme='dark'] {
-      --bg-body: #020617;
-      --bg-body-gradient: linear-gradient(135deg, #020617 0%, #0f0a1e 40%, #020617 100%);
-      --bg-app: rgba(30, 41, 59, 0.9);
-      --bg-header: linear-gradient(135deg, #000000 0%, #0f0a1e 50%, #000000 100%);
+      /* Deep Midnight Dark Mode */
+      --bg-body: #02040a;
+      --bg-body-gradient: radial-gradient(circle at top left, #0f172a 0%, #02040a 100%);
+      --bg-app: rgba(15, 23, 42, 0.6);
+      --bg-header: linear-gradient(135deg, #000000 0%, #0f172a 100%);
       --bg-header-solid: #000000;
       --bg-header-text: #ffffff;
-      --bg-alt: rgba(15, 23, 42, 0.95);
-      --bg-hover: rgba(139,92,246,0.10);
-      --bg-input: rgba(2, 6, 23, 0.9);
-      --bg-modal-overlay: rgba(0,0,0,0.85);
-      --border-color: rgba(51, 65, 85, 0.8);
-      --border-light: rgba(71, 85, 105, 0.5);
-      --text-main: #ffffff;
+      --bg-alt: rgba(30, 41, 59, 0.4);
+      --bg-hover: rgba(99, 102, 241, 0.15);
+      --bg-input: rgba(15, 23, 42, 0.7);
+      --bg-modal-overlay: rgba(0, 0, 0, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-light: rgba(255, 255, 255, 0.04);
+      --text-main: #f8fafc;
       --text-sub: #e2e8f0;
       --text-muted: #94a3b8;
       --text-accent: #38bdf8;
       --text-on-dark: #ffffff;
       --color-danger-dark: #fb7185;
-      --color-warning-light: rgba(234, 179, 8, 0.15);
+      --color-warning-light: rgba(234, 179, 8, 0.1);
       --color-warning-dark: #facc15;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-      --shadow: 0 4px 15px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.4);
-      --shadow-glass: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07);
-      --calendar-grid-border: rgba(0,0,0,0.6);
-      --calendar-cell-border: rgba(255,255,255,0.03);
-      --bg-sat: rgba(17, 30, 53, 0.9);
-      --bg-sun: rgba(42, 18, 21, 0.9);
-      --bg-today: rgba(12, 26, 48, 0.98);
-      --accent-today: #0ea5e9;
-      --glass-bg: rgba(15, 23, 42, 0.75);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --glass-bg-panel: rgba(15, 23, 42, 0.7);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
+      --shadow: 0 10px 30px rgba(0,0,0,0.6);
+      --shadow-lg: 0 30px 60px rgba(0,0,0,0.8);
+      --shadow-glass: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.05);
+      --shadow-glass-intense: 0 12px 48px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.1);
+      --calendar-grid-border: rgba(255, 255, 255, 0.07);
+      --calendar-cell-border: rgba(255, 255, 255, 0.03);
+      --bg-sat: rgba(30, 41, 59, 0.4);
+      --bg-sun: rgba(69, 10, 10, 0.35);
+      --bg-today: rgba(56, 189, 248, 0.12);
+      --accent-today: #38bdf8;
+      --glass-bg: rgba(10, 14, 23, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-bg-panel: rgba(15, 23, 42, 0.8);
+      --glass-saturation: 2.0;
+      --glass-blur: 40px;
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 10px;
       --color-sat: #60a5fa;
       --color-sun: #f87171;
 
-      /* Type Colors - Dark (Deep Tone) */
-      --type-bg-inspect: rgba(67, 20, 7, 0.9); --type-badge-inspect: #f97316; --type-text-inspect: #ffedd5;
-      --type-bg-repair: rgba(8, 47, 73, 0.9); --type-badge-repair: #0ea5e9; --type-text-repair: #e0f2fe;
-      --type-bg-install: rgba(5, 46, 22, 0.9); --type-badge-install: #22c55e; --type-text-install: #dcfce7;
-      --type-bg-remove: rgba(46, 16, 101, 0.9); --type-badge-remove: #a855f7; --type-text-remove: #f3e8ff;
-      --type-bg-maint: rgba(76, 5, 25, 0.9); --type-badge-maint: #f43f5e; --type-text-maint: #ffe4e6;
-      --type-bg-other: rgba(30, 41, 59, 0.9); --type-badge-other: #94a3b8; --type-text-other: #f1f5f9;
+      /* Type Colors - Dark */
+      --type-bg-inspect: rgba(124, 45, 18, 0.35); --type-badge-inspect: #fb923c; --type-text-inspect: #ffedd5;
+      --type-bg-repair: rgba(12, 74, 110, 0.35); --type-badge-repair: #38bdf8; --type-text-repair: #e0f2fe;
+      --type-bg-install: rgba(20, 83, 45, 0.35); --type-badge-install: #4ade80; --type-text-install: #dcfce7;
+      --type-bg-remove: rgba(76, 29, 149, 0.35); --type-badge-remove: #c084fc; --type-text-remove: #f3e8ff;
+      --type-bg-maint: rgba(159, 18, 57, 0.35); --type-badge-maint: #fb7185; --type-text-maint: #ffe4e6;
+      --type-bg-other: rgba(30, 41, 59, 0.35); --type-badge-other: #94a3b8; --type-text-other: #f1f5f9;
 
       /* Result Colors - Dark */
-      --res-bg-done: #064e3b;
-      --res-bg-cancel: #7f1d1d;
-      --res-bg-pending: #78350f;
-      --res-bg-other: #334155;
+      --res-bg-done: rgba(5, 46, 22, 0.45);
+      --res-bg-cancel: rgba(69, 10, 10, 0.45);
+      --res-bg-pending: rgba(67, 20, 7, 0.45);
+      --res-bg-other: rgba(30, 41, 59, 0.45);
     }
 
-    *, *::before, *::after { box-sizing: border-box; }
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .glass-card {
+      background: var(--bg-app);
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-glass);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-4px) scale(1.005);
+      box-shadow: var(--shadow-glass-intense);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    [data-theme='dark'] .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(30, 41, 59, 0.7);
+    }
 
     body {
       background: var(--bg-body-gradient);
       background-attachment: fixed;
       color: var(--text-main);
-      transition: background 0.3s, color 0.2s;
+      transition: background 0.5s, color 0.3s;
       font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
-    }
-
-    .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(1.8);
-      -webkit-backdrop-filter: blur(20px) saturate(1.8);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--shadow-glass);
-    }
-
-    .glass-panel {
-      background: var(--glass-bg-panel);
-      backdrop-filter: blur(16px) saturate(1.6);
-      -webkit-backdrop-filter: blur(16px) saturate(1.6);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--shadow);
+      margin: 0;
     }
 
     .today-premium {
       position: relative;
-      box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.12), 0 0 0 1.5px var(--accent-today) !important;
-      z-index: 1;
+      box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.1), 0 0 0 2px var(--accent-today) !important;
+      z-index: 10;
     }
 
-    /* Assignment status indicator row */
-    .worker-row-assigned {
-      transition: box-shadow 0.2s, transform 0.15s;
+    /* Scrollbar - Premium Slim */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+
+    /* Input / select glassmorphism optimization */
+    input, select, textarea {
+      font-family: inherit;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .worker-row-assigned:hover {
-      box-shadow: var(--shadow-lg) !important;
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--text-accent) !important;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+      background: var(--bg-app);
       transform: translateY(-1px);
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.7); }
-
-    /* Input / select glassmorphism */
-    input, select {
-      font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--text-accent) !important;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    /* Assignment dot pulse for unassigned */
     @keyframes pulse-red {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-      50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
     }
-    .unassigned-pulse {
-      animation: pulse-red 2s ease-in-out infinite;
+    @keyframes modalFadeUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); filter: blur(10px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
   `}</style>
 );
+
 
 // --- Main App ---
 export default function App() {
@@ -2442,18 +2806,40 @@ export default function App() {
   }, []);
 
   const filtered = useMemo(() => {
-    return (tickets || []).filter(t => {
+    if (!tickets || tickets.length === 0) return [];
+    
+    // 検索語やフィルタがない場合は全件をそのまま返さず、メモ化の利点を活かす
+    if (!filterType && !filterWorker && !search) return tickets;
+
+    const s = search ? search.toLowerCase() : "";
+    
+    return tickets.filter(t => {
+      // 1. タイプフィルタ
       if (filterType && t.type !== filterType) return false;
+      
+      // 2. 対応者フィルタ
       if (filterWorker) {
-        // フィルタリング時も苗字一致を許容
         const w = workers.find(x => String(x.id) === filterWorker);
         const filterName = w ? w.name : filterWorker;
-        if (t.person !== filterWorker && t.person !== filterName && !(filterName && t.person && (filterName.startsWith(t.person) || t.person.startsWith(filterName)))) return false;
+        // 苗字一致等の判定
+        const isMatch = t.person === filterWorker || 
+                        t.person === filterName || 
+                        (filterName && t.person && (filterName.startsWith(t.person) || t.person.startsWith(filterName)));
+        if (!isMatch) return false;
       }
-      if (search) { const s = search.toLowerCase(); return Object.values(t).some(v => typeof v === "string" && v.toLowerCase().includes(s)); }
+      
+      // 3. 検索ワード
+      if (s) {
+        const found = Object.values(t).some(v => 
+          typeof v === "string" && v.toLowerCase().includes(s)
+        );
+        if (!found) return false;
+      }
+      
       return true;
     });
   }, [tickets, workers, filterType, filterWorker, search]);
+
 
   const monthTickets = useMemo(() => {
     const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
@@ -2492,6 +2878,18 @@ export default function App() {
     setIsNew(true);
   }, [todayStr, perms.canCreate]);
 
+  // マンスリービューの自動スクロール
+  useEffect(() => {
+    if (view === "monthly" && selectedDate && !isFitWidth) {
+      setTimeout(() => {
+        const el = document.getElementById("day-cell-" + selectedDate);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+        }
+      }, 100);
+    }
+  }, [selectedDate, view, isFitWidth]);
+
   const handleEdit = useCallback(t => { 
     if (!perms.canEditTicket(t)) { alert("この予定を編集する権限がありません"); return; }
     setEditTicket({ ...t }); 
@@ -2515,8 +2913,8 @@ export default function App() {
     <ErrorBoundary>
       <GlobalStyles />
       <div style={{
-        fontFamily: "'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif",
-        background: "var(--bg-body)",
+        fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
+        background: "transparent",
         height: "100vh",
         color: "var(--text-main)",
         display: "flex",
@@ -2530,8 +2928,11 @@ export default function App() {
             initialDate={selectedDate || todayStr}
             onNavigate={(dateStr) => {
               if (dateStr === null) { setShowMiniCal(false); return; }
+              const d = new Date(dateStr + "T00:00:00");
+              setYear(d.getFullYear());
+              setMonth(d.getMonth());
               setSelectedDate(dateStr);
-              setView("daily");
+              if (view === "pool") setView("monthly");
             }}
           />
         )}
@@ -2607,7 +3008,19 @@ export default function App() {
         )}
 
         {/* Top bar */}
-        <div style={{ background: "var(--bg-header)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", zIndex: 100, flexShrink: 0, boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
+        <div style={{
+          background: "var(--bg-header)",
+          backdropFilter: "blur(20px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+          padding: "10px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid var(--glass-border)",
+          zIndex: 100,
+          flexShrink: 0,
+          boxShadow: "0 4px 30px rgba(0,0,0,0.1)"
+        }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button
               onClick={() => setShowMiniCal(v => !v)}
@@ -2805,19 +3218,22 @@ export default function App() {
             <select value={filterWorker} onChange={e => setFilterWorker(e.target.value)} style={{ padding: "5px 8px", border: "1px solid var(--border-color)", borderRadius: 8, fontSize: 12, background: "var(--glass-bg)", color: "var(--text-main)", backdropFilter: "blur(8px)" }}>
               <option value="">全案件担当 (FE)</option>{workers.filter(w => w.sche_role === "field_engineer").map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
             </select>
-            {Object.entries(typeColors).map(([k, v]) => (
-              <button key={k} onClick={() => setFilterType(filterType === k ? "" : k)} style={{
-                fontSize: 10, padding: "2px 8px", borderRadius: 20, cursor: "pointer", fontWeight: 700,
-                border: `1px solid ${v.badge}`,
-                background: filterType === k ? v.badge : "transparent",
-                color: filterType === k ? "#fff" : v.text,
-                transition: "all 0.2s",
-              }}>{k}</button>
-            ))}
+            {types.map(k => {
+              const v = typeColors[k] || typeColors["その他"];
+              return (
+                <button key={k} onClick={() => setFilterType(filterType === k ? "" : k)} style={{
+                  fontSize: 10, padding: "2px 8px", borderRadius: 20, cursor: "pointer", fontWeight: 700,
+                  border: `1px solid ${v?.badge || "var(--border-color)"}`,
+                  background: filterType === k ? (v?.badge || "#3b82f6") : "transparent",
+                  color: filterType === k ? "#fff" : (v?.badge || "var(--text-main)"),
+                  transition: "all 0.2s",
+                }}>{k}</button>
+              );
+            })}
             <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>合計:<b style={{ color: "#3b82f6", minWidth: "2.5em", textAlign: "right" }}>{stats.total}</b></span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>完了:<b style={{ color: "#16a34a", minWidth: "2.5em", textAlign: "right" }}>{stats.done}</b></span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4 }}>未対応:<b style={{ color: "#f59e0b", minWidth: "2.5em", textAlign: "right" }}>{stats.pending}</b></span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4, alignItems: "center" }}>合計:<b style={{ color: "#3b82f6", minWidth: "2.5em", textAlign: "right", lineHeight: 1 }}>{stats.total}</b></span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4, alignItems: "center" }}>完了:<b style={{ color: "#16a34a", minWidth: "2.5em", textAlign: "right", lineHeight: 1 }}>{stats.done}</b></span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 4, alignItems: "center" }}>未対応:<b style={{ color: "#f59e0b", minWidth: "2.5em", textAlign: "right", lineHeight: 1 }}>{stats.pending}</b></span>
           </div>
           <Legend workers={workers.filter(w => w.sche_role === "field_engineer")} hoveredDate={hoveredDate} tickets={filtered} />
         </div>
@@ -2826,18 +3242,18 @@ export default function App() {
         <div style={{
           flex: 1,
           overflowY: "auto",
-          overflowX: "hidden",
+          overflowX: (isFitWidth || view === "daily") ? "hidden" : "auto",
           position: "relative",
           paddingBottom: 60, // Bottom tabs space
           scrollbarGutter: "stable"
         }}>
           <div style={{
             padding: "12px 20px",
-            width: isFitWidth ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "max-content"),
-            minWidth: isFitWidth ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "100%"),
+            width: (isFitWidth || view === "daily") ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "max-content"),
+            minWidth: (isFitWidth || view === "daily") ? "100%" : (zoom < 1 ? `calc(100% / ${zoom})` : "100%"),
             boxSizing: "border-box",
             transformOrigin: "top left",
-            transform: isFitWidth ? "none" : `scale(${zoom})`,
+            transform: (isFitWidth || view === "daily") ? "none" : `scale(${zoom})`,
             transition: "all 0.2s"
           }}>
             {view === "monthly" ? (
@@ -2855,6 +3271,8 @@ export default function App() {
                 theme={theme}
                 hoveredDate={hoveredDate}
                 setHoveredDate={setHoveredDate}
+                isFitWidth={isFitWidth}
+                zoom={zoom}
                 onReorder={(dateStr, workerId, fromId, toId) => {
                   setTickets(prev => {
                     const next = [...prev];
