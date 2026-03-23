@@ -2,6 +2,17 @@ import React, { useState, useMemo, useCallback, useEffect, useRef, Component } f
 import { supabase } from "./supabase";
 import initialTicketsData from "./initialTickets.json";
 
+// 地図表示用
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// アイコン追加
+import { 
+  MapPin, Navigation, TrendingUp, Clock, CheckCircle, Zap, Route, 
+  ChevronRight, Timer, Loader, Search, X, Map as IconMap, Mail
+} from 'lucide-react';
+
 const IconVacationSolid = ({ size = 24, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M11 2v4h2V2h-2zm4.3 2.3l-1.4 1.4 2.8 2.8 1.4-1.4-2.8-2.8zM19 11v2h4v-2h-4zm-2.3 4.3l-2.8 2.8 1.4 1.4 2.8-2.8-1.4-1.4zM2 13h4v-2H2v2zm2.3-4.3l1.4-1.4 2.8 2.8-1.4 1.4-2.8-2.8zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /></svg>
 );
@@ -169,26 +180,27 @@ const TIME_OPTIONS = (() => {
 })();
 
 const INITIAL_WORKERS = [
-  { id: "平本", name: "平本", color: "#2563eb" },
-  { id: "神崎", name: "神崎", color: "#dc2626" },
-  { id: "原", name: "原", color: "#16a34a" },
-  { id: "佐藤", name: "佐藤", color: "#9333ea" },
-  { id: "築地", name: "築地", color: "#ca8a04" },
-  { id: "清水", name: "清水", color: "#0891b2" },
-  { id: "岡﨑", name: "岡﨑", color: "#be123c" },
-  { id: "淺沼", name: "淺沼", color: "#7c3aed" },
-  { id: "中川", name: "中川", color: "#ea580c" },
-  { id: "小齊平", name: "小齊平", color: "#059669" },
-  { id: "豊田", name: "豊田", color: "#4f46e5" },
-  { id: "濱田", name: "濱田", color: "#e11d48" },
-  { id: "松下", name: "松下", color: "#0d9488" },
-  { id: "阿部", name: "阿部", color: "#d97706" },
-  { id: "藤井", name: "藤井", color: "#7c2d12" },
-  { id: "杉山", name: "杉山", color: "#6d28d9" },
-  { id: "大家", name: "大家", color: "#0369a1" },
-  { id: "富本", name: "富本", color: "#b91c1c" },
-  { id: "高杉", name: "高杉", color: "#15803d" },
-  { id: "高橋", name: "高橋", color: "#a21caf" },
+  { id: "平本", name: "平本", color: "#2563eb", sche_role: "field_engineer" },
+  { id: "神崎", name: "神崎", color: "#dc2626", sche_role: "field_engineer" },
+  { id: "原", name: "原", color: "#16a34a", sche_role: "field_engineer" },
+  { id: "佐藤", name: "佐藤", color: "#9333ea", sche_role: "field_engineer" },
+  { id: "築地", name: "築地", color: "#ca8a04", sche_role: "field_engineer" },
+  { id: "清水", name: "清水", color: "#0891b2", sche_role: "field_engineer" },
+  { id: "岡﨑", name: "岡﨑", color: "#be123c", sche_role: "field_engineer" },
+  { id: "淺沼", name: "淺沼", color: "#7c3aed", sche_role: "field_engineer" },
+  { id: "中川", name: "中川", color: "#ea580c", sche_role: "field_engineer" },
+  { id: "小齊平", name: "小齊平", color: "#059669", sche_role: "field_engineer" },
+  { id: "豊田", name: "豊田", color: "#4f46e5", sche_role: "field_engineer" },
+  { id: "濱田", name: "濱田", color: "#e11d48", sche_role: "field_engineer" },
+  { id: "松下", name: "松下", color: "#0d9488", sche_role: "field_engineer" },
+  { id: "阿部", name: "阿部", color: "#d97706", sche_role: "field_engineer" },
+  { id: "藤井", name: "藤井", color: "#7c2d12", sche_role: "field_engineer" },
+  { id: "杉山", name: "杉山", color: "#6d28d9", sche_role: "field_engineer" },
+  { id: "大家", name: "大家", color: "#0369a1", sche_role: "field_engineer" },
+  { id: "富本", name: "富本", color: "#b91c1c", sche_role: "field_engineer" },
+  { id: "高杉", name: "高杉", color: "#15803d", sche_role: "field_engineer" },
+  { id: "高橋", name: "高橋", color: "#a21caf", sche_role: "field_engineer" },
+  { id: "塙", name: "塙", color: "#1e40af", sche_role: "field_engineer", avatar_url2: "/avatars/hanawa.jpg" },
 ];
 
 const ALL_COLS = [
@@ -346,6 +358,81 @@ function formatArea(address, prefectures) {
 
   return formatted;
 }
+
+// --- Leaflet icon fix ---
+if (typeof window !== 'undefined' && L.Icon.Default) {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
+}
+
+const geocodeGSI = async (address) => {
+  try {
+    const url = `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(address)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const [lng, lat] = data[0].geometry.coordinates;
+      return { lat: parseFloat(lat), lng: parseFloat(lng) };
+    }
+    return null;
+  } catch { return null; }
+};
+
+const geocodeAddress = async (address) => {
+  if (!address) return null;
+  // 住所の正規化
+  const norm = address
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    .replace(/[－‐―－—]/g, '-')
+    .replace(/[　]/g, ' ')
+    .trim();
+  return await geocodeGSI(norm);
+};
+
+const calculateOptimalRoute = (startPos, tickets, startTime = '09:00') => {
+  if (!tickets || tickets.length === 0) return [];
+  
+  const route = [];
+  let unvisited = [...tickets];
+  let currentPos = { lat: startPos.lat, lng: startPos.lng };
+
+  while (unvisited.length > 0) {
+    unvisited.sort((a, b) => {
+      const distA = Math.sqrt(Math.pow((a.lat || 0) - currentPos.lat, 2) + Math.pow((a.lng || 0) - currentPos.lng, 2));
+      const distB = Math.sqrt(Math.pow((b.lat || 0) - currentPos.lat, 2) + Math.pow((b.lng || 0) - currentPos.lng, 2));
+      return distA - distB;
+    });
+    const next = unvisited.shift();
+    const dist = Math.sqrt(Math.pow((next.lat || 0) - currentPos.lat, 2) + Math.pow((next.lng || 0) - currentPos.lng, 2));
+    // 簡易的な移動時間計算 (1kmあたり2分と仮定, 緯度経度1度≒111km)
+    const travelTime = Math.round(dist * 111 * 2) || 15; 
+    route.push({ ...next, travelTime, distance: (dist * 111).toFixed(1) });
+    currentPos = { lat: next.lat || currentPos.lat, lng: next.lng || currentPos.lng };
+  }
+
+  const [h, m] = startTime.split(':').map(Number);
+  let cur = new Date();
+  cur.setHours(h, m, 0, 0);
+
+  return route.map(item => {
+    cur.setMinutes(cur.getMinutes() + (item.travelTime || 0));
+    // 12時台は昼休憩
+    if (cur.getHours() === 12) cur.setHours(13, 0, 0, 0);
+    const arrival = new Date(cur);
+    // 滞在30分
+    cur.setMinutes(cur.getMinutes() + 30);
+    const departure = new Date(cur);
+    return {
+      ...item,
+      arrival: arrival.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      departure: departure.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+  });
+};
 
 function UserAvatar({ user, size = 24, style = {} }) {
   if (!user) return null;
@@ -531,7 +618,8 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
       {weeks.map((week, wi) => (
         <div key={wi} style={{
           display: "grid", gridTemplateColumns: `repeat(7, ${colWidth})`,
-          borderBottom: wi < weeks.length - 1 ? "1px solid var(--calendar-grid-border)" : "none",
+          borderLeft: "1px solid var(--calendar-cell-border)",
+          borderTop: wi === 0 ? "1px solid var(--calendar-cell-border)" : "none",
           alignItems: "stretch",
         }}>
           {week.map((cell, ci) => {
@@ -556,7 +644,8 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                 onMouseEnter={() => setHoveredDate(cell.dateStr)}
                 onMouseLeave={() => setHoveredDate(null)}
                 style={{
-                  borderRight: ci < 6 ? "1px solid var(--calendar-cell-border)" : "none",
+                  borderRight: "1px solid var(--calendar-cell-border)",
+                  borderBottom: "1px solid var(--calendar-cell-border)",
                   background: isToday
                     ? (theme === "dark" ? "linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.05) 100%)" : "rgba(251,191,36,0.15)")
                     : (isSun || isHolidayDay)
@@ -566,16 +655,17 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                         : "var(--bg-alt)",
                   backdropFilter: `blur(var(--glass-blur)) saturate(1.2)`,
                   WebkitBackdropFilter: `blur(var(--glass-blur)) saturate(1.2)`,
-                  padding: 3,
+                  padding: "8px 6px",
                   display: "flex", flexDirection: "column",
                   minHeight: 140,
                   transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                   boxShadow: isToday
                     ? "inset 0 0 0 2px rgba(251,191,36,0.4), inset 0 0 24px rgba(245,158,11,0.1)"
-                    : isHovered
-                      ? "inset 0 0 0 2.5px var(--text-accent), 0 0 20px rgba(56, 189, 248, 0.2)"
-                      : "none",
+                    : isHovered ? "0 8px 30px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(0,0,0,0.05)" : "none",
+                  outline: isHovered ? "2.3px solid #3b82f6" : "none",
+                  outlineOffset: "-2px",
                   zIndex: isHovered ? 10 : 1,
+                  borderRadius: isHovered ? "4px" : "0px",
                   position: "relative",
                   cursor: "default"
                 }}
@@ -635,10 +725,10 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
                     }, 0);
                     return (
                       <div key={w.id} style={{
-                        marginBottom: 6, borderRadius: "var(--radius-sm)", overflow: "hidden",
-                        border: "1px solid var(--border-light)",
+                        marginBottom: 8, borderRadius: 5, overflow: "hidden",
+                        border: "1px solid var(--border-color)",
                         display: "flex",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                         background: monthDragOver && monthDragOver.workerId === String(w.id) && monthDragOver.dateStr === cell.dateStr && monthDragId ? "#eff6ff" : "transparent"
                       }}
                         onDragOver={(e) => { e.preventDefault(); if (monthDragId) setMonthDragOver({ workerId: String(w.id), dateStr: cell.dateStr }); }}
@@ -829,7 +919,7 @@ function MonthCalendar({ tickets, year, month, workers, allWorkers, vacations, o
 }
 
 // --- Daily Detail View ---
-function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, onAdd, onView, onSave, vacations, onToggleVacation, onReorder, onMoveTicket, theme }) {
+function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, onAdd, onView, onSave, vacations, onToggleVacation, onReorder, onMoveTicket, theme, onShowMap, onCalculateRoute }) {
   const dayTickets = tickets.filter(t => t.date === dateStr);
   const d = new Date(dateStr + "T00:00:00");
   const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
@@ -968,14 +1058,26 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
             </div>
           </div>
 
-          <button onClick={() => onAdd(dateStr)} className="glass-card" style={{ 
-            padding: "10px 28px", border: "1px solid var(--border-color)", background: "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)", 
-            color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", transition: "all 0.3s cubic-bezier(0.23, 1, 0.32, 1)", 
-            boxShadow: "0 10px 20px rgba(30,64,175,0.25)" 
-          }}
-            onMouseOver={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 15px 30px rgba(30,64,175,0.4)"; }}
-            onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 10px 20px rgba(30,64,175,0.25)"; }}
-          >＋ 新規チケット追加</button>
+          <div style={{ display: "flex", gap: 12 }}>
+            <button onClick={() => onShowMap(true)} className="glass-card" style={{ 
+              padding: "10px 20px", border: "1px solid var(--border-color)", background: "rgba(255,255,255,0.1)", 
+              color: "var(--text-main)", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+              transition: "all 0.3s cubic-bezier(0.23, 1, 0.32, 1)"
+            }}
+              onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+              onMouseOut={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+            >
+              <IconMap size={16} /> Map
+            </button>
+            <button onClick={() => onAdd(dateStr)} className="glass-card" style={{ 
+              padding: "10px 28px", border: "1px solid var(--border-color)", background: "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)", 
+              color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", transition: "all 0.3s cubic-bezier(0.23, 1, 0.32, 1)", 
+              boxShadow: "0 10px 20px rgba(30,64,175,0.25)" 
+            }}
+              onMouseOver={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 15px 30px rgba(30,64,175,0.4)"; }}
+              onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 10px 20px rgba(30,64,175,0.25)"; }}
+            >＋ 新規チケット追加</button>
+          </div>
         </div>
 
         {/* Bottom Row: Detailed Summary (FTS/委託) */}
@@ -1148,22 +1250,38 @@ function DailyDetail({ tickets, dateStr, workers, allWorkers, onEdit, onDelete, 
                 )}
                 <div style={{ flex: 1 }} />
                 {!isUnassignedRow && (
-                  <button onClick={() => {
-                    if (!isVac && wt.length > 0) {
-                      if (!confirm(`${w.name}さんには${wt.length}件の予定があります。休暇にしますか？`)) return;
-                    }
-                    onToggleVacation && onToggleVacation(dateStr, w.id);
-                  }} style={{
-                    padding: "4px 12px", borderRadius: 8, cursor: "pointer", fontSize: 11, fontWeight: 800,
-                    border: isVac ? "1px solid rgba(234,179,8,0.5)" : "1px solid var(--glass-border)",
-                    background: isVac ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "var(--glass-bg)",
-                    color: isVac ? "#000" : "var(--text-sub)",
-                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                    backdropFilter: "blur(8px)",
-                  }}
-                    onMouseOver={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
-                    onMouseOut={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; }}
-                  >{isVac ? <><IconCheck size={11} color="#000" /> 出勤に戻す</> : <><IconVacation size={11} color="var(--text-muted)" /> 休暇設定</>}</button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {wt.length > 0 && (
+                      <button onClick={() => onCalculateRoute && onCalculateRoute(dateStr, w.id)} style={{
+                        padding: "4px 12px", borderRadius: 8, cursor: "pointer", fontSize: 11, fontWeight: 800,
+                        border: "1px solid var(--glass-border)",
+                        background: "rgba(59,130,246,0.1)",
+                        color: "#2563eb",
+                        transition: "all 0.3s",
+                      }}
+                        onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.2)"; }}
+                        onMouseOut={e => { e.currentTarget.style.background = "rgba(59,130,246,0.1)"; }}
+                      >
+                        <IconTruck size={11} /> ルート計算
+                      </button>
+                    )}
+                    <button onClick={() => {
+                      if (!isVac && wt.length > 0) {
+                        if (!confirm(`${w.name}さんには${wt.length}件の予定があります。休暇にしますか？`)) return;
+                      }
+                      onToggleVacation && onToggleVacation(dateStr, w.id);
+                    }} style={{
+                      padding: "4px 12px", borderRadius: 8, cursor: "pointer", fontSize: 11, fontWeight: 800,
+                      border: isVac ? "1px solid rgba(234,179,8,0.5)" : "1px solid var(--glass-border)",
+                      background: isVac ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "var(--glass-bg)",
+                      color: isVac ? "#000" : "var(--text-sub)",
+                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                      backdropFilter: "blur(8px)",
+                    }}
+                      onMouseOver={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}
+                      onMouseOut={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; }}
+                    >{isVac ? <><IconCheck size={11} color="#000" /> 出勤に戻す</> : <><IconVacation size={11} color="var(--text-muted)" /> 休暇設定</>}</button>
+                  </div>
                 )}
                 <button onClick={() => { const t = emptyTicket(); t.date = dateStr; t.person = isUnassignedRow ? "" : String(w.id); onEdit(t); }} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", fontSize: 12, padding: "4px 10px", fontWeight: 800, transition: "all 0.2s" }}
                   onMouseOver={e => { e.currentTarget.style.background = "var(--bg-hover)"; e.currentTarget.style.color = "var(--text-accent)"; }}
@@ -2085,27 +2203,57 @@ function AdminModal({ types, workers, perms, onSaveTypes, onSaveWorkers, onClose
           {tab === "workers" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {workerList.map(w => (
-                <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--bg-app)", border: "1px solid var(--border-color)", borderRadius: 6 }}>
-                  <UserAvatar user={w} size={24} />
-                  {editingWorkerId === w.id ? (
-                    <>
-                      <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)}
-                        style={{ flex: 1, padding: "3px 8px", border: "1px solid #3b82f6", borderRadius: 3, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }} autoFocus />
-                      <button onClick={updateWorkerName} style={{ padding: "3px 8px", borderRadius: 3, border: "none", background: "#1e40af", color: "#fff", fontSize: 11, cursor: "pointer" }}>OK</button>
-                      <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "3px 8px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>×</button>
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--text-main)" }}>{w.name}</span>
-                      <select value={w.sche_role || "view"} onChange={e => changeRole(w.id, e.target.value)}
-                        disabled={!perms?.canManageRoles}
-                        style={{ padding: "2px 4px", border: "1px solid var(--border-color)", borderRadius: 3, fontSize: 11, background: "var(--bg-input)", color: SCHE_ROLE_COLORS[w.sche_role || "view"] || SCHE_ROLE_COLORS["view"], fontWeight: 700, cursor: perms?.canManageRoles ? "pointer" : "default", opacity: perms?.canManageRoles ? 1 : 0.8 }}>
-                        {SCHE_ROLES.map(r => <option key={r} value={r}>{SCHE_ROLE_LABELS[r] || r}</option>)}
-                      </select>
-                      <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", color: "var(--text-muted)" }}><IconEdit size={13} /></button>
-                      <button onClick={() => removeWorker(w.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "2px" }}><IconTrash size={13} color="#ef4444" /></button>
-                    </>
-                  )}
+                <div key={w.id} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 14px", background: "var(--bg-app)", border: "1px solid var(--border-color)", borderRadius: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <UserAvatar user={w} size={30} />
+                    {editingWorkerId === w.id ? (
+                      <>
+                        <input value={newWorkerName} onChange={e => setNewWorkerName(e.target.value)}
+                          style={{ flex: 1, padding: "4px 8px", border: "1px solid #3b82f6", borderRadius: 4, fontSize: 13, background: "var(--bg-input)", color: "var(--text-main)" }} autoFocus />
+                        <button onClick={updateWorkerName} style={{ padding: "4px 12px", borderRadius: 4, border: "none", background: "#1e40af", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>OK</button>
+                        <button onClick={() => { setEditingWorkerId(null); setNewWorkerName(""); }} style={{ padding: "4px 12px", borderRadius: 4, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 12, cursor: "pointer" }}>×</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "var(--text-main)" }}>{w.name}</span>
+                        <select value={w.sche_role || "view"} onChange={e => changeRole(w.id, e.target.value)}
+                          disabled={!perms?.canManageRoles}
+                          style={{ padding: "4px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 11, background: "var(--bg-input)", color: SCHE_ROLE_COLORS[w.sche_role || "view"] || SCHE_ROLE_COLORS["view"], fontWeight: 800, cursor: perms?.canManageRoles ? "pointer" : "default", opacity: perms?.canManageRoles ? 1 : 0.8 }}>
+                          {SCHE_ROLES.map(r => <option key={r} value={r}>{SCHE_ROLE_LABELS[r] || r}</option>)}
+                        </select>
+                        <button onClick={() => { setEditingWorkerId(w.id); setNewWorkerName(w.name); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", color: "var(--text-muted)", borderRadius: 4 }} onMouseOver={e => e.currentTarget.style.background = "var(--bg-alt)"} onMouseOut={e => e.currentTarget.style.background = "none"}><IconEdit size={14} /></button>
+                        <button onClick={() => removeWorker(w.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "6px", borderRadius: 4 }} onMouseOver={e => e.currentTarget.style.background = "rgba(239,68,68,0.1)"} onMouseOut={e => e.currentTarget.style.background = "none"}><IconTrash size={14} color="#ef4444" /></button>
+                      </>
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "8px 12px", background: "rgba(0,0,0,0.02)", borderRadius: 6 }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>🏠 出発地点 (住所)</label>
+                      <input 
+                        type="text" 
+                        value={w.departure_address || ""} 
+                        placeholder="例: 東京都新宿区..."
+                        onChange={e => {
+                          const val = e.target.value;
+                          setWorkerList(prev => prev.map(pw => pw.id === w.id ? { ...pw, departure_address: val } : pw));
+                        }} 
+                        style={{ width: "100%", padding: "5px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 11, background: "var(--bg-input)", color: "var(--text-main)", boxSizing: "border-box" }} 
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>📧 Google Account (位置情報用)</label>
+                      <input 
+                        type="email" 
+                        value={w.google_email || ""} 
+                        placeholder="example@gmail.com"
+                        onChange={e => {
+                          const val = e.target.value;
+                          setWorkerList(prev => prev.map(pw => pw.id === w.id ? { ...pw, google_email: val } : pw));
+                        }} 
+                        style={{ width: "100%", padding: "5px 8px", border: "1px solid var(--border-color)", borderRadius: 4, fontSize: 11, background: "var(--bg-input)", color: "var(--text-main)", boxSizing: "border-box" }} 
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
 
@@ -2634,6 +2782,122 @@ const GlobalStyles = () => (
 );
 
 
+// --- Map View Component ---
+function MapView({ tickets, dateStr, workers, onClose, onUpdateTicket }) {
+  const [map, setMap] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+
+  // 地図の中心を計算（最初の座標または東京）
+  const center = useMemo(() => {
+    const firstWithPos = tickets.find(t => t.lat && t.lng);
+    return firstWithPos ? [firstWithPos.lat, firstWithPos.lng] : [35.6812, 139.7671];
+  }, [tickets]);
+
+  // ワーカーごとのルートをポリライン用に整形
+  const routesByWorker = useMemo(() => {
+    const res = {};
+    workers.forEach(w => {
+      const wt = tickets
+        .filter(t => (t.person === String(w.id) || t.person === w.name) && t.lat && t.lng)
+        .sort((a, b) => (a.arrivalTime || "").localeCompare(b.arrivalTime || ""));
+      if (wt.length > 0) {
+        // 出発地点があれば追加
+        const points = [];
+        if (w.departure_lat && w.departure_lng) {
+          points.push([w.departure_lat, w.departure_lng]);
+        }
+        wt.forEach(t => points.push([t.lat, t.lng]));
+        res[w.id] = { points, color: w.color };
+      }
+    });
+    return res;
+  }, [tickets, workers]);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 5000, background: "var(--bg-app)", display: "flex", flexDirection: "column", animation: "modalFadeUp 0.4s ease-out" }}>
+      <header style={{ padding: "12px 24px", background: "var(--bg-header)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <IconMap size={20} />
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>Root Map: {dateStr}</h2>
+        </div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>閉じる</button>
+      </header>
+      <div style={{ flex: 1, position: "relative" }}>
+        <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%" }} ref={setMap}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
+          
+          {/* 物件マーカー */}
+          {tickets.filter(t => t.lat && t.lng).map(t => {
+            const w = workers.find(x => String(x.id) === t.person || x.name === t.person);
+            const color = w ? w.color : "#64748b";
+            const icon = L.divIcon({
+              className: "custom-div-icon",
+              html: `<div style="background-color: ${color}; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>`,
+              iconSize: [12, 12],
+              iconAnchor: [6, 6]
+            });
+            return (
+              <Marker key={t.id} position={[t.lat, t.lng]} icon={icon}>
+                <Popup>
+                  <div style={{ fontSize: 12 }}>
+                    <div style={{ fontWeight: 800, marginBottom: 4 }}>{t.property}</div>
+                    <div>{t.type} / {t.unit}</div>
+                    <div style={{ color: "var(--text-muted)", marginTop: 4 }}>{t.address || ""}</div>
+                    {t.arrival && <div style={{ fontWeight: 700, color: "#2563eb" }}>到着予定: {t.arrival}</div>}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+
+          {/* 出発地点マーカー */}
+          {workers.filter(w => w.departure_lat && w.departure_lng).map(w => {
+            const icon = L.divIcon({
+              className: "custom-div-icon",
+              html: `<div style="background-color: #fff; border: 2px solid ${w.color}; width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 10px; font-weight: 900; color: ${w.color};">🏠</div>`,
+              iconSize: [16, 16],
+              iconAnchor: [8, 8]
+            });
+            return (
+              <Marker key={`home-${w.id}`} position={[w.departure_lat, w.departure_lng]} icon={icon}>
+                <Popup>
+                  <div style={{ fontWeight: 800 }}>{w.name} の出発地点</div>
+                  <div style={{ fontSize: 11 }}>{w.departure_address}</div>
+                </Popup>
+              </Marker>
+            );
+          })}
+
+          {/* 現在地マーカー */}
+          {workers.filter(w => w.current_lat && w.current_lng).map(w => {
+            const icon = L.divIcon({
+              className: "worker-loc-icon",
+              html: `<div style="background-color: ${w.color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px ${w.color}80; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                      <img src="${w.avatar || 'https://www.gravatar.com/avatar?d=mp'}" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            });
+            return (
+              <Marker key={`loc-${w.id}`} position={[w.current_lat, w.current_lng]} icon={icon} zIndexOffset={1000}>
+                <Popup>
+                  <div style={{ fontWeight: 800 }}>{w.name} の現在地</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{w.google_email ? `Google: ${w.google_email}` : "Googleアカウント未連携"}</div>
+                </Popup>
+              </Marker>
+            );
+          })}
+
+          {/* ルートポリライン */}
+          {Object.entries(routesByWorker).map(([id, route]) => (
+            <Polyline key={id} positions={route.points} color={route.color} weight={4} opacity={0.6} dashArray="5, 10" />
+          ))}
+        </MapContainer>
+      </div>
+    </div>
+  );
+}
+
 // --- Main App ---
 export default function App() {
   const now = new Date();
@@ -2664,6 +2928,8 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
   const [showMiniCal, setShowMiniCal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [routeResults, setRouteResults] = useState({}); // {date-worker: items}
   const settingsRef = useRef(null);
   useEffect(() => {
     if (!showSettings) return;
@@ -2692,12 +2958,18 @@ export default function App() {
     });
 
     // Fetch workers from Supabase (sche_role ベース)
+    // Fetch workers from Supabase (sche_role ベース)
     const fetchWorkers = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, display_name, sche_role, avatar_url, avatar_url2");
+      // profiles と worker_settings を個別に取得してフロントエンドでマージ
+      const [{ data: pData, error: pError }, { data: sData, error: sError }] = await Promise.all([
+        supabase.from("profiles").select("id, email, display_name, sche_role, avatar_url, avatar_url2"),
+        supabase.from("worker_settings").select("*")
+      ]);
 
-      if (!error && data) {
+      if (!pError && pData) {
+        const settingsMap = new Map();
+        if (sData) sData.forEach(s => settingsMap.set(s.id, s));
+
         // カラーマッピング用の色配列
         const presetColors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
         
@@ -2705,7 +2977,8 @@ export default function App() {
         const colorRefMap = new Map();
         INITIAL_WORKERS.forEach(w => colorRefMap.set(w.name, w.color));
 
-        const fetched = data.map((d, i) => {
+        const fetched = pData.map((d, i) => {
+          const s = settingsMap.get(d.id) || {};
           const name = d.display_name || d.email || "Unknown";
           // 既存の INITIAL_WORKERS に名前があればその色を、なければ配布配列から
           const color = colorRefMap.get(name) || presetColors[i % presetColors.length];
@@ -2716,15 +2989,21 @@ export default function App() {
             color: color,
             sche_role: d.sche_role || "view",
             email: d.email,
+            avatar: d.avatar_url || d.avatar_url2,
             avatar_url: d.avatar_url,
-            avatar_url2: d.avatar_url2
+            avatar_url2: d.avatar_url2,
+            departure_address: s.departure_address,
+            departure_lat: s.departure_lat,
+            departure_lng: s.departure_lng,
+            current_lat: s.current_lat,
+            current_lng: s.current_lng,
+            google_email: s.google_email
           };
         });
-
         setWorkers(fetched);
-      } else if (error) {
-        console.error("Fetch workers error:", error);
-        // エラー時はフォールバックとして INITIAL_WORKERS を表示（オプション）
+      } else if (pError) {
+        console.error("Fetch workers error:", pError);
+        // エラー時はフォールバックとして INITIAL_WORKERS を表示
         setWorkers(INITIAL_WORKERS);
       }
     };
@@ -2895,6 +3174,59 @@ export default function App() {
     setEditTicket({ ...t }); 
     setIsNew(!t.type); 
   }, [perms.canEditTicket]);
+
+  const calculateRouteForWorker = async (dateStr, workerId) => {
+    const worker = workers.find(w => String(w.id) === String(workerId));
+    if (!worker) return;
+
+    // 当日のその人のチケットを抽出
+    const workerTickets = tickets.filter(t => t.date === dateStr && (t.person === String(workerId) || t.person === worker.name));
+    if (workerTickets.length === 0) {
+      alert("この日の予定がありません");
+      return;
+    }
+
+    // ジオコーディング未完了のものがあれば実行
+    const ticketsWithPos = [];
+    for (const t of workerTickets) {
+      if (!t.lat || !t.lng) {
+        const pos = await geocodeAddress(t.property, t.prefecture);
+        if (pos) {
+          t.lat = pos.lat;
+          t.lng = pos.lng;
+          t.address = pos.address;
+          // チケット情報を更新（永続化は後ほど）
+          setTickets(prev => prev.map(pt => pt.id === t.id ? { ...pt, lat: pos.lat, lng: pos.lng, address: pos.address } : pt));
+        }
+      }
+      if (t.lat && t.lng) ticketsWithPos.push(t);
+    }
+
+    if (ticketsWithPos.length === 0) {
+      alert("場所を特定できる予定がありません");
+      return;
+    }
+
+    const startPos = (worker.departure_lat && worker.departure_lng) 
+      ? { lat: worker.departure_lat, lng: worker.departure_lng }
+      : null;
+
+    const result = calculateOptimalRoute(startPos, ticketsWithPos);
+    
+    // 計算結果をチケットに反映
+    const updatedTickets = [...tickets];
+    result.forEach(r => {
+      const idx = updatedTickets.findIndex(ut => ut.id === r.id);
+      if (idx !== -1) {
+        updatedTickets[idx] = { ...updatedTickets[idx], arrival: r.arrival, departure: r.departure };
+      }
+    });
+    setTickets(updatedTickets);
+    // マップ表示用の計算済みフラグ
+    setRouteResults(prev => ({ ...prev, [`${dateStr}-${workerId}`]: true }));
+    alert(`${worker.name}さんのルートを計算しました。`);
+  };
+
   const openDaily = dateStr => { setSelectedDate(dateStr); setView("daily"); };
 
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
@@ -3315,7 +3647,10 @@ export default function App() {
                   <button onClick={prevDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>◂ 前日</button>
                   <button onClick={nextDay} style={{ padding: "4px 10px", borderRadius: 3, border: "1px solid var(--border-color)", background: "var(--bg-app)", color: "var(--text-main)", fontSize: 11, cursor: "pointer" }}>翌日 ▸</button>
                 </div>
-                <DailyDetail tickets={filtered} dateStr={selectedDate} workers={workers.filter(w => w.sche_role === "field_engineer")} allWorkers={workers.filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} onView={t => setViewingTicket({ ...t })} onSave={handleSave} vacations={vacations} onToggleVacation={toggleVacation} theme={theme} onReorder={(dateStr, workerId, fromId, toId) => {
+                <DailyDetail tickets={filtered} dateStr={selectedDate} workers={workers.filter(w => w.sche_role === "field_engineer")} allWorkers={workers.filter(w => ["admin", "dispatcher", "field_engineer"].includes(w.sche_role))} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} onView={t => setViewingTicket({ ...t })} onSave={handleSave} vacations={vacations} onToggleVacation={toggleVacation} theme={theme}
+                  onShowMap={setShowMap}
+                  onCalculateRoute={calculateRouteForWorker}
+                  onReorder={(dateStr, workerId, fromId, toId) => {
                   if (toId === "end") {
                     setTickets(prev => {
                       const next = [...prev];
@@ -3423,7 +3758,63 @@ export default function App() {
         {/* Modals */}
         {viewingTicket && <TicketDetailModal perms={perms} ticket={viewingTicket} workers={workers} onClose={() => setViewingTicket(null)} onEdit={t => { setViewingTicket(null); handleEdit(t); }} onDelete={id => { setViewingTicket(null); handleDelete(id); }} />}
         {editTicket && <TicketFormModal perms={perms} ticket={editTicket} isNew={isNew} onSave={handleSave} onClose={() => { setEditTicket(null); setIsNew(false); }} workers={workers} />}
-        {showAdmin && <AdminModal perms={perms} types={types} workers={workers} onSaveTypes={t => { setTypes(t); setShowAdmin(false); }} onSaveWorkers={w => { setWorkers(w); setShowAdmin(false); }} onClose={() => setShowAdmin(false)} />}
+        {showAdmin && <AdminModal perms={perms} types={types} workers={workers} onSaveTypes={t => { setTypes(t); setShowAdmin(false); }} 
+          onSaveWorkers={async (wList) => { 
+            // 変更があったプロフィールを更新
+            for (const w of wList) {
+              // 共通プロフィール (名前のみ)
+              await supabase.from("profiles").update({ 
+                display_name: w.name
+              }).eq("id", w.id);
+
+              // システム固有設定 (住所・座標・Googleメール)
+              // 住所が変わっている可能性があるため、必要に応じてジオコーディング
+              let lat = w.departure_lat;
+              let lng = w.departure_lng;
+              if (w.departure_address) {
+                const coords = await geocodeAddress(w.departure_address);
+                if (coords) {
+                  lat = coords.lat;
+                  lng = coords.lng;
+                }
+              }
+
+              await supabase.from("worker_settings").upsert({ 
+                id: w.id,
+                departure_address: w.departure_address,
+                departure_lat: lat,
+                departure_lng: lng,
+                google_email: w.google_email,
+                updated_at: new Date().toISOString()
+              });
+            }
+            // 最新データを再取得して状態を同期
+            const { data: pData } = await supabase.from("profiles").select("id, email, display_name, sche_role");
+            const { data: sData } = await supabase.from("worker_settings").select("*");
+            if (pData) {
+              const sMap = new Map();
+              if (sData) sData.forEach(s => sMap.set(s.id, s));
+              const presetColors = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ca8a04", "#0891b2", "#be123c", "#7c3aed"];
+              const colorRefMap = new Map();
+              INITIAL_WORKERS.forEach(iw => colorRefMap.set(iw.name, iw.color));
+              
+              const merged = pData.map((d, i) => {
+                const s = sMap.get(d.id) || {};
+                const nm = d.display_name || d.email || "Unknown";
+                return {
+                  id: d.id, name: nm, color: colorRefMap.get(nm) || presetColors[i % presetColors.length],
+                  sche_role: d.sche_role || "view", email: d.email,
+                  departure_address: s.departure_address, departure_lat: s.departure_lat, departure_lng: s.departure_lng,
+                  current_lat: s.current_lat, current_lng: s.current_lng, google_email: s.google_email
+                };
+              });
+              setWorkers(merged); 
+            }
+            setShowAdmin(false); 
+            alert("対応者情報を保存しました。");
+          }} 
+          onClose={() => setShowAdmin(false)} 
+        />}
       </div>
     </ErrorBoundary>
   );
